@@ -604,6 +604,7 @@ function createRewriteMenu() {
             li.textContent = option.name;
             if (option.key === 'delete') {
                 li.classList.add('rewrite-menu-item-delete');
+                li.style.color = 'var(--danger, #e53935)';
             }
             li.addEventListener('mousedown', handleMenuItemClick);
             li.addEventListener('touchstart', handleMenuItemClick);
