@@ -790,7 +790,6 @@ async function handleRewrite(mesId, swipeId, option, customInstructions = null, 
     }
 
     const { fullMessage, rawStartOffset, rawEndOffset } = selectionInfo;
-    const generations = [];
 
     const generateRewrite = async () => {
         if (main_api === 'openai') {
@@ -803,34 +802,26 @@ async function handleRewrite(mesId, swipeId, option, customInstructions = null, 
         return handleTextBasedRewrite(mesId, swipeId, option, customInstructions, selectionInfo);
     };
 
-    const openPreviewModal = () => {
-        if (!rewritePreviewModal) {
-            rewritePreviewModal = createRewritePreviewModal({
-                onRetry: async () => {
-                    const newText = await generateRewrite();
-                    generations.push(newText ?? '');
-                    return generations.length - 1;
-                },
-                onApply: async (currentText) => {
-                    await saveRewrittenText(mesId, swipeId, fullMessage, rawStartOffset, rawEndOffset, currentText);
-                    refreshMessageUi(mesId);
-                },
-            });
-        }
+    rewritePreviewModal?.destroy();
+    rewritePreviewModal = createRewritePreviewModal({
+        onRetry: async () => {
+            return generateRewrite();
+        },
+        onApply: async (currentText) => {
+            await saveRewrittenText(mesId, swipeId, fullMessage, rawStartOffset, rawEndOffset, currentText);
+            refreshMessageUi(mesId);
+        },
+    });
 
-        rewritePreviewModal.show(generations);
-    };
+    rewritePreviewModal.show();
 
-    openPreviewModal();
-    if (generations.length === 0) {
-        try {
-            rewritePreviewModal.setLoading(true);
-            const firstText = await generateRewrite();
-            generations.push(firstText ?? '');
-            rewritePreviewModal.setGenerationIndex(0, generations);
-        } finally {
-            rewritePreviewModal.setLoading(false);
-        }
+    try {
+        rewritePreviewModal.setLoading(true);
+        const initialIndex = rewritePreviewModal.startGeneration();
+        const firstText = await generateRewrite();
+        rewritePreviewModal.setGeneration(initialIndex, firstText ?? '');
+    } finally {
+        rewritePreviewModal.setLoading(false);
     }
 }
 
@@ -1366,9 +1357,9 @@ function createRewritePreviewModal({ onRetry, onApply }) {
     modal.querySelector('[data-action="retry"]').addEventListener('click', async () => {
         try {
             api.setLoading(true);
-            const newIndex = await onRetry();
-            currentIndex = newIndex;
-            updateView();
+            const nextIndex = api.startGeneration();
+            const newText = await onRetry();
+            api.setGeneration(nextIndex, newText ?? '');
         } finally {
             api.setLoading(false);
         }
@@ -1387,14 +1378,20 @@ function createRewritePreviewModal({ onRetry, onApply }) {
     });
 
     const api = {
-        show(items) {
-            generations = items;
-            currentIndex = Math.max(0, generations.length - 1);
+        show() {
+            generations = [];
+            currentIndex = 0;
             updateView();
             modal.classList.add('visible');
         },
-        setGenerationIndex(index, items) {
-            generations = items;
+        startGeneration() {
+            generations.push('');
+            currentIndex = generations.length - 1;
+            updateView();
+            return currentIndex;
+        },
+        setGeneration(index, text) {
+            generations[index] = text;
             currentIndex = index;
             updateView();
         },
@@ -1402,9 +1399,14 @@ function createRewritePreviewModal({ onRetry, onApply }) {
             modal.classList.toggle('loading', isLoading);
         },
         setLiveText(text) {
-            if (modal.classList.contains('visible')) {
-                body.textContent = text;
+            if (modal.classList.contains('visible') && generations.length > 0) {
+                generations[currentIndex] = text;
+                updateView();
             }
+        },
+        destroy() {
+            document.removeEventListener('keydown', handleModalKeydown);
+            modal.remove();
         },
     };
 
