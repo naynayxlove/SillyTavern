@@ -57,5 +57,5 @@
 .custom-roadway_option .custom-action_button:hover {
   background-color: var(--SmartThemeBorderColor);
 }
-.roadway_prompt_group{display:inline-flex;align-items:center;gap:calc(var(--mainFontSize)*.35)}
-.roadway_prompt_selector{width:9em;min-height:calc(var(--mainFontSize)*1.8);font-size:calc(var(--mainFontSize)*.9);padding:0 calc(var(--mainFontSize)*.35)}
+.roadway_prompt_group{display:inline-flex;align-items:center;gap:calc(var(--mainFontSize)*.25)}
+.roadway_prompt_selector{width:8.5em;height:calc(var(--mainFontSize)*2);min-height:calc(var(--mainFontSize)*2);font-size:calc(var(--mainFontSize)*.9);padding:0 calc(var(--mainFontSize)*.25);margin:0}

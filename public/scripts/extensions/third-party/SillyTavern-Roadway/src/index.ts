@@ -337,9 +337,9 @@ async function handleUIChanges(): Promise<void> {
   );
 
   const roadwayButtonGroup = $(
-    `<div class="mes_button roadway_prompt_group">
+    `<div class="roadway_prompt_group">
       <select class="roadway_prompt_selector text_pole interactable" title="Roadway prompt preset"></select>
-      <div title="Generate Roadway" class="mes_magic_roadway_button fa-solid fa-road interactable" tabindex="0"></div>
+      <div title="Generate Roadway" class="mes_button mes_magic_roadway_button fa-solid fa-road interactable" tabindex="0"></div>
     </div>`,
   );
   $('#message_template .mes_buttons .extraMesButtons').prepend(roadwayButtonGroup);
