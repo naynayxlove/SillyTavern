@@ -310,6 +310,50 @@ async function handleUIChanges(): Promise<void> {
   );
   $('#message_template .mes_buttons .extraMesButtons').prepend(roadwayButton);
   const pendingRequests = new Set<number>();
+
+  const selectPromptPresetForRun = async (): Promise<string> => {
+    const availablePresetKeys = Object.keys(settings.promptPresets);
+    if (!availablePresetKeys.length) {
+      return settings.promptPreset;
+    }
+
+    let selectedPresetKey =
+      availablePresetKeys.includes(settings.promptPreset) ? settings.promptPreset : availablePresetKeys[0];
+
+    const optionHtml = availablePresetKeys
+      .map((key) => `<option value="${key.replace(/"/g, '&quot;')}">${key}</option>`)
+      .join('');
+
+    const popupResult = await globalContext.Popup.show.confirm(
+      'Select Roadway Prompt Preset',
+      `<label for="roadway_prompt_preset_select">Prompt preset for this run:</label>
+      <select id="roadway_prompt_preset_select" class="text_pole" style="margin-top:8px; width:100%;">
+        ${optionHtml}
+      </select>`,
+      {
+        okButton: 'Generate',
+        cancelButton: 'Cancel',
+        onOpen: () => {
+          const selectElement = document.getElementById('roadway_prompt_preset_select') as HTMLSelectElement | null;
+          if (!selectElement) {
+            return;
+          }
+
+          selectElement.value = selectedPresetKey;
+          selectElement.addEventListener('change', () => {
+            selectedPresetKey = selectElement.value || settings.promptPreset;
+          });
+        },
+      },
+    );
+
+    if (!popupResult) {
+      return '';
+    }
+
+    return selectedPresetKey || settings.promptPreset;
+  };
+
   $(document).on('click', '.mes_magic_roadway_button', async function () {
     const context = SillyTavern.getContext();
     if (!settings.profileId) {
@@ -331,6 +375,17 @@ async function handleUIChanges(): Promise<void> {
     if (!targetMessage) {
       return;
     }
+
+    const selectedPresetKey = (await selectPromptPresetForRun()) || settings.promptPreset;
+    if (!selectedPresetKey) {
+      return;
+    }
+    const selectedPreset = settings.promptPresets[selectedPresetKey] ?? settings.promptPresets[settings.promptPreset];
+    if (!selectedPreset) {
+      await st_echo('error', 'Please enter a prompt first in the settings.');
+      return;
+    }
+
     let characterId: number | undefined = characters.findIndex(
       (char: any) => char.avatar === targetMessage.original_avatar,
     );
@@ -364,7 +419,7 @@ async function handleUIChanges(): Promise<void> {
       });
       const messages = promptResult.result;
       messages.push({
-        content: context.substituteParams(settings.promptPresets[settings.promptPreset].content),
+        content: context.substituteParams(selectedPreset.content),
         role: settings.messageRole,
       });
       const rest = (await context.ConnectionManagerRequestService.sendRequest(
@@ -374,7 +429,7 @@ async function handleUIChanges(): Promise<void> {
       )) as ExtractedData;
 
       let actions: string[] = [];
-      const extractionStrategy = settings.promptPresets[settings.promptPreset]?.extractionStrategy;
+      const extractionStrategy = selectedPreset.extractionStrategy;
       if (extractionStrategy === 'bullet') {
         actions = extractBulletPoints(rest.content);
         if (actions.length === 0) {
