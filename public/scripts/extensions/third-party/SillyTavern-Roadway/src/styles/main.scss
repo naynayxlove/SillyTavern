@@ -63,3 +63,16 @@
         }
     }
 }
+
+.roadway_prompt_group {
+    display: inline-flex;
+    align-items: center;
+    gap: calc(var(--mainFontSize) * 0.35);
+}
+
+.roadway_prompt_selector {
+    width: 9em;
+    min-height: calc(var(--mainFontSize) * 1.8);
+    font-size: calc(var(--mainFontSize) * 0.9);
+    padding: 0 calc(var(--mainFontSize) * 0.35);
+}
