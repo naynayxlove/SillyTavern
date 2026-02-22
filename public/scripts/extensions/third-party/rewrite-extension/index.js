@@ -1413,6 +1413,10 @@ async function handleUndo(event) {
 
 async function saveRewrittenText(mesId, swipeId, fullMessage, startOffset, endOffset, newText) {
     const context = getContext();
+    const mesIndex = Number(mesId);
+    const swipeIndex = swipeId !== undefined && swipeId !== null && swipeId !== ''
+        ? Number(swipeId)
+        : undefined;
 
     // Get the prefix and suffix to remove from the settings
     const removePrefix = extension_settings[extensionName].removePrefix || '';
@@ -1444,11 +1448,17 @@ async function saveRewrittenText(mesId, swipeId, fullMessage, startOffset, endOf
     saveLastChange(mesId, swipeId, fullMessage, newMessage);
 
     // Update the main message
-    context.chat[mesId].mes = newMessage;
+    context.chat[mesIndex].mes = newMessage;
 
     // Update the swipe if it exists
-    if (swipeId !== undefined && context.chat[mesId].swipes && context.chat[mesId].swipes[swipeId]) {
-        context.chat[mesId].swipes[swipeId] = newMessage;
+    if (
+        swipeIndex !== undefined
+        && Number.isInteger(swipeIndex)
+        && context.chat[mesIndex].swipes
+        && swipeIndex >= 0
+        && swipeIndex < context.chat[mesIndex].swipes.length
+    ) {
+        context.chat[mesIndex].swipes[swipeIndex] = newMessage;
     }
 
     // Update the currently visible message immediately
@@ -1458,9 +1468,9 @@ async function saveRewrittenText(mesId, swipeId, fullMessage, startOffset, endOf
         mesTextElement.innerHTML = messageFormatting(
             newMessage,
             context.name2,
-            context.chat[mesId].isSystem,
-            context.chat[mesId].isUser,
-            mesId,
+            context.chat[mesIndex].isSystem,
+            context.chat[mesIndex].isUser,
+            mesIndex,
         );
         addCopyToCodeBlocks(mesTextElement);
     }
