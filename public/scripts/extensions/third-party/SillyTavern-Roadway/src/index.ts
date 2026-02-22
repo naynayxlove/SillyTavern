@@ -308,56 +308,30 @@ async function handleUIChanges(): Promise<void> {
   const roadwayButton = $(
     `<div title="Generate Roadway" class="mes_button mes_magic_roadway_button fa-solid fa-road interactable" tabindex="0"></div>`,
   );
-  $('#message_template .mes_buttons .extraMesButtons').prepend(roadwayButton);
-  const pendingRequests = new Set<number>();
+  const roadwayPresetSelect = $(
+    `<select title="Select Roadway Prompt Preset" class="text_pole mes_magic_roadway_preset_select" style="max-width:180px; margin-right:4px;"></select>`,
+  );
 
-  const selectPromptPresetForRun = async (): Promise<string> => {
+  const syncRoadwayPresetSelect = (selectElement: JQuery<HTMLElement>) => {
     const availablePresetKeys = Object.keys(settings.promptPresets);
-    if (!availablePresetKeys.length) {
-      return settings.promptPreset;
-    }
+    const currentValue = (selectElement.val() as string) || settings.promptPreset;
+    const fallbackPreset =
+      availablePresetKeys.includes(settings.promptPreset) && settings.promptPreset
+        ? settings.promptPreset
+        : (availablePresetKeys[0] ?? '');
+    const nextValue = availablePresetKeys.includes(currentValue) ? currentValue : fallbackPreset;
 
-    let selectedPresetKey =
-      availablePresetKeys.includes(settings.promptPreset) ? settings.promptPreset : availablePresetKeys[0];
-
-    const presetSelectContainer = document.createElement('div');
-    const presetSelectLabel = document.createElement('label');
-    presetSelectLabel.setAttribute('for', 'roadway_prompt_preset_select');
-    presetSelectLabel.textContent = 'Prompt preset for this run:';
-
-    const presetSelectElement = document.createElement('select');
-    presetSelectElement.id = 'roadway_prompt_preset_select';
-    presetSelectElement.className = 'text_pole';
-    presetSelectElement.style.marginTop = '8px';
-    presetSelectElement.style.width = '100%';
-
-    availablePresetKeys.forEach((key) => {
-      const option = document.createElement('option');
-      option.value = key;
-      option.textContent = key;
-      presetSelectElement.appendChild(option);
+    selectElement.empty();
+    availablePresetKeys.forEach((presetKey) => {
+      selectElement.append(new Option(presetKey, presetKey, false, presetKey === nextValue));
     });
-
-    presetSelectElement.value = selectedPresetKey;
-    presetSelectElement.addEventListener('change', () => {
-      selectedPresetKey = presetSelectElement.value || settings.promptPreset;
-    });
-
-    presetSelectContainer.appendChild(presetSelectLabel);
-    presetSelectContainer.appendChild(presetSelectElement);
-
-    const popup = new (globalContext.Popup as any)(presetSelectContainer, 2, '', {
-      okButton: 'Generate',
-      cancelButton: 'Cancel',
-    });
-    const popupResult = await popup.show();
-
-    if (!popupResult) {
-      return '';
-    }
-
-    return selectedPresetKey || settings.promptPreset;
+    selectElement.val(nextValue);
   };
+
+  syncRoadwayPresetSelect(roadwayPresetSelect);
+  $('#message_template .mes_buttons .extraMesButtons').prepend(roadwayButton);
+  $('#message_template .mes_buttons .extraMesButtons').prepend(roadwayPresetSelect);
+  const pendingRequests = new Set<number>();
 
   $(document).on('click', '.mes_magic_roadway_button', async function () {
     const context = SillyTavern.getContext();
@@ -381,7 +355,14 @@ async function handleUIChanges(): Promise<void> {
       return;
     }
 
-    const selectedPresetKey = (await selectPromptPresetForRun()) || settings.promptPreset;
+    const presetSelect = messageBlock.find('.mes_magic_roadway_preset_select').first();
+    syncRoadwayPresetSelect(presetSelect);
+
+    const selectedPresetKey =
+      (presetSelect.val() as string) ||
+      settings.promptPreset ||
+      Object.keys(settings.promptPresets)[0] ||
+      '';
     if (!selectedPresetKey) {
       return;
     }
