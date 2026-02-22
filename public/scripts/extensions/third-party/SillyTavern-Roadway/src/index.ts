@@ -320,32 +320,36 @@ async function handleUIChanges(): Promise<void> {
     let selectedPresetKey =
       availablePresetKeys.includes(settings.promptPreset) ? settings.promptPreset : availablePresetKeys[0];
 
-    const optionHtml = availablePresetKeys
-      .map((key) => `<option value="${key.replace(/"/g, '&quot;')}">${key}</option>`)
-      .join('');
+    const presetSelectContainer = document.createElement('div');
+    const presetSelectLabel = document.createElement('label');
+    presetSelectLabel.setAttribute('for', 'roadway_prompt_preset_select');
+    presetSelectLabel.textContent = 'Prompt preset for this run:';
 
-    const popupResult = await globalContext.Popup.show.confirm(
-      'Select Roadway Prompt Preset',
-      `<label for="roadway_prompt_preset_select">Prompt preset for this run:</label>
-      <select id="roadway_prompt_preset_select" class="text_pole" style="margin-top:8px; width:100%;">
-        ${optionHtml}
-      </select>`,
-      {
-        okButton: 'Generate',
-        cancelButton: 'Cancel',
-        onOpen: () => {
-          const selectElement = document.getElementById('roadway_prompt_preset_select') as HTMLSelectElement | null;
-          if (!selectElement) {
-            return;
-          }
+    const presetSelectElement = document.createElement('select');
+    presetSelectElement.id = 'roadway_prompt_preset_select';
+    presetSelectElement.className = 'text_pole';
+    presetSelectElement.style.marginTop = '8px';
+    presetSelectElement.style.width = '100%';
 
-          selectElement.value = selectedPresetKey;
-          selectElement.addEventListener('change', () => {
-            selectedPresetKey = selectElement.value || settings.promptPreset;
-          });
-        },
-      },
-    );
+    availablePresetKeys.forEach((key) => {
+      const option = document.createElement('option');
+      option.value = key;
+      option.textContent = key;
+      presetSelectElement.appendChild(option);
+    });
+
+    presetSelectElement.value = selectedPresetKey;
+    presetSelectElement.addEventListener('change', () => {
+      selectedPresetKey = presetSelectElement.value || settings.promptPreset;
+    });
+
+    presetSelectContainer.appendChild(presetSelectLabel);
+    presetSelectContainer.appendChild(presetSelectElement);
+
+    const popupResult = await globalContext.Popup.show.confirm('Select Roadway Prompt Preset', presetSelectContainer, {
+      okButton: 'Generate',
+      cancelButton: 'Cancel',
+    });
 
     if (!popupResult) {
       return '';
