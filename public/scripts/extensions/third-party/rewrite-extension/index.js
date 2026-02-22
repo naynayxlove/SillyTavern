@@ -34,7 +34,6 @@ const defaultSettings = {
     shortenLabel: "Shorten",
     expandLabel: "Expand",
     customLabel: "Custom",
-    highlightDuration: 3000,
     selectedModel: "chat_completion",
     textRewritePrompt: `[INST]Rewrite this section of text: """{{rewrite}}""" while keeping the same content, general style and length. Do not list alternatives and only print the result without prefix or suffix.[/INST]
 
@@ -49,20 +48,10 @@ Sure, here is only the rewritten text without any comments: `,
 
 Sure, here is only the rewritten text without any comments: `, 
     useStreaming: true,
-    useDynamicTokens: true,
-    dynamicTokenMode: 'multiplicative',
     rewriteTokens: 100,
     shortenTokens: 50,
     expandTokens: 150,
-    customTokens: 100, 
-    rewriteTokensAdd: 0,
-    shortenTokensAdd: -50,
-    expandTokensAdd: 50,
-    customTokensAdd: 0, 
-    rewriteTokensMult: 1.05,
-    shortenTokensMult: 0.8,
-    expandTokensMult: 1.5,
-    customTokensMult: 1.0, 
+    customTokens: 100,   
     removePrefix: `"`,
     removeSuffix: `"`,
     overrideMaxTokens: true,
@@ -96,27 +85,16 @@ function loadSettings() {
     $("#shorten_preset").val(getSetting('shortenPreset', defaultSettings.shortenPreset));
     $("#expand_preset").val(getSetting('expandPreset', defaultSettings.expandPreset));
     $("#custom_preset").val(getSetting('customPreset', defaultSettings.customPreset)); 
-    $("#highlight_duration").val(getSetting('highlightDuration', defaultSettings.highlightDuration));
     $("#rewrite_extension_model_select").val(getSetting('selectedModel', defaultSettings.selectedModel));
     $("#text_rewrite_prompt").val(getSetting('textRewritePrompt', defaultSettings.textRewritePrompt));
     $("#text_shorten_prompt").val(getSetting('textShortenPrompt', defaultSettings.textShortenPrompt));
     $("#text_expand_prompt").val(getSetting('textExpandPrompt', defaultSettings.textExpandPrompt));
     $("#text_custom_prompt").val(getSetting('textCustomPrompt', defaultSettings.textCustomPrompt)); 
     $("#use_streaming").prop('checked', getSetting('useStreaming', defaultSettings.useStreaming));
-    $("#use_dynamic_tokens").prop('checked', getSetting('useDynamicTokens', defaultSettings.useDynamicTokens));
-    $("#dynamic_token_mode").val(getSetting('dynamicTokenMode', defaultSettings.dynamicTokenMode));
     $("#rewrite_tokens").val(getSetting('rewriteTokens', defaultSettings.rewriteTokens));
     $("#shorten_tokens").val(getSetting('shortenTokens', defaultSettings.shortenTokens));
     $("#expand_tokens").val(getSetting('expandTokens', defaultSettings.expandTokens));
     $("#custom_tokens").val(getSetting('customTokens', defaultSettings.customTokens)); 
-    $("#rewrite_tokens_add").val(getSetting('rewriteTokensAdd', defaultSettings.rewriteTokensAdd));
-    $("#shorten_tokens_add").val(getSetting('shortenTokensAdd', defaultSettings.shortenTokensAdd));
-    $("#expand_tokens_add").val(getSetting('expandTokensAdd', defaultSettings.expandTokensAdd));
-    $("#custom_tokens_add").val(getSetting('customTokensAdd', defaultSettings.customTokensAdd)); 
-    $("#rewrite_tokens_mult").val(getSetting('rewriteTokensMult', defaultSettings.rewriteTokensMult));
-    $("#shorten_tokens_mult").val(getSetting('shortenTokensMult', defaultSettings.shortenTokensMult));
-    $("#expand_tokens_mult").val(getSetting('expandTokensMult', defaultSettings.expandTokensMult));
-    $("#custom_tokens_mult").val(getSetting('customTokensMult', defaultSettings.customTokensMult)); 
     $("#remove_prefix").val(getSetting('removePrefix', defaultSettings.removePrefix));
     $("#remove_suffix").val(getSetting('removeSuffix', defaultSettings.removeSuffix));
     $("#override_max_tokens").prop('checked', getSetting('overrideMaxTokens', defaultSettings.overrideMaxTokens));
@@ -133,7 +111,6 @@ function loadSettings() {
 
     // Update the UI based on loaded settings
     updateModelSettings();
-    updateTokenSettings();
 }
 
 function saveSettings() {
@@ -142,27 +119,16 @@ function saveSettings() {
         shortenPreset: $("#shorten_preset").val(),
         expandPreset: $("#expand_preset").val(),
         customPreset: $("#custom_preset").val(), 
-        highlightDuration: parseInt($("#highlight_duration").val()),
         selectedModel: $("#rewrite_extension_model_select").val(),
         textRewritePrompt: $("#text_rewrite_prompt").val(),
         textShortenPrompt: $("#text_shorten_prompt").val(),
         textExpandPrompt: $("#text_expand_prompt").val(),
         textCustomPrompt: $("#text_custom_prompt").val(), 
         useStreaming: $("#use_streaming").is(':checked'),
-        useDynamicTokens: $("#use_dynamic_tokens").is(':checked'),
-        dynamicTokenMode: $("#dynamic_token_mode").val(),
         rewriteTokens: parseInt($("#rewrite_tokens").val()),
         shortenTokens: parseInt($("#shorten_tokens").val()),
         expandTokens: parseInt($("#expand_tokens").val()),
-        customTokens: parseInt($("#custom_tokens").val()), 
-        rewriteTokensAdd: parseInt($("#rewrite_tokens_add").val()),
-        shortenTokensAdd: parseInt($("#shorten_tokens_add").val()),
-        expandTokensAdd: parseInt($("#expand_tokens_add").val()),
-        customTokensAdd: parseInt($("#custom_tokens_add").val()), 
-        rewriteTokensMult: parseFloat($("#rewrite_tokens_mult").val()),
-        shortenTokensMult: parseFloat($("#shorten_tokens_mult").val()),
-        expandTokensMult: parseFloat($("#expand_tokens_mult").val()),
-        customTokensMult: parseFloat($("#custom_tokens_mult").val()), 
+        customTokens: parseInt($("#custom_tokens").val()),   
         removePrefix: $("#remove_prefix").val(),
         removeSuffix: $("#remove_suffix").val(),
         overrideMaxTokens: $("#override_max_tokens").is(':checked'),
@@ -230,15 +196,6 @@ function updateModelSettings() {
     }
 }
 
-function updateTokenSettings() {
-    const useDynamicTokens = $("#use_dynamic_tokens").is(':checked');
-    const dynamicTokenMode = $("#dynamic_token_mode").val();
-    $("#static_token_settings").toggle(!useDynamicTokens);
-    $("#dynamic_token_settings").toggle(useDynamicTokens);
-    $("#additive_settings").toggle(dynamicTokenMode === 'additive');
-    $("#multiplicative_settings").toggle(dynamicTokenMode === 'multiplicative');
-}
-
 // Initialize
 jQuery(async () => {
     const settingsHtml = await $.get(`${extensionFolderPath}/rewrite_settings.html`);
@@ -248,13 +205,9 @@ jQuery(async () => {
     await populateDropdowns();
 
     // Add event listeners
-    $(".rewrite-extension-settings select, #highlight_duration").on("change", saveSettings);
+    $(".rewrite-extension-settings select").on("change", saveSettings);
     $("#use_streaming").on("change", saveSettings);
-    $("#use_dynamic_tokens, #dynamic_token_mode").on("change", () => {
-        updateTokenSettings();
-        saveSettings();
-    });
-    $("#rewrite_tokens, #shorten_tokens, #expand_tokens, #custom_tokens, #rewrite_tokens_add, #shorten_tokens_add, #expand_tokens_add, #custom_tokens_add, #rewrite_tokens_mult, #shorten_tokens_mult, #expand_tokens_mult, #custom_tokens_mult").on("input", saveSettings); // Added custom token inputs
+    $("#rewrite_tokens, #shorten_tokens, #expand_tokens, #custom_tokens").on("input", saveSettings);
     $("#text_rewrite_prompt, #text_shorten_prompt, #text_expand_prompt, #text_custom_prompt, #rewrite_label, #shorten_label, #expand_label, #custom_label, #remove_prefix, #remove_suffix").on("input change", saveSettings);
     $("#override_max_tokens").on("change", saveSettings);
     $("#show_rewrite, #show_shorten, #show_expand, #show_custom, #show_delete").on("change", saveSettings); // Added #show_custom
@@ -301,10 +254,9 @@ function initRewriteMenu() {
     $('#mes_stop').on('click', handleStopRewrite);
 }
 
-
 function handleStopRewrite() {
     if (abortController) {
-        const { mesDiv, mesId, swipeId, highlightDuration } = abortController.signal;
+        const { mesDiv, mesId, swipeId } = abortController.signal;
         abortController.abort();
         // Restore the original settings
         if (abortController.signal.prev_oai_settings) {
@@ -314,7 +266,7 @@ function handleStopRewrite() {
         getContext().activateSendButtons();
 
         // Call removeHighlight with the stored arguments
-        setTimeout(() => removeHighlight(mesDiv, mesId, swipeId), highlightDuration);
+        removeHighlight(mesDiv, mesId, swipeId);
     }
 }
 
@@ -958,7 +910,6 @@ async function handleChatCompletionRewrite(mesId, swipeId, option, customInstruc
     abortController.signal.mesDiv = mesDiv;
     abortController.signal.mesId = mesId;
     abortController.signal.swipeId = swipeId;
-    abortController.signal.highlightDuration = extension_settings[extensionName].highlightDuration;
 
     // Show the stop button
     getContext().deactivateSendButtons();
@@ -1012,9 +963,7 @@ async function handleChatCompletionRewrite(mesId, swipeId, option, customInstruc
             range.insertNode(highlightedNewText);
         }
 
-        // Remove highlight after x seconds when processing is complete
-        const highlightDuration = extension_settings[extensionName].highlightDuration;
-        setTimeout(() => removeHighlight(mesDiv, mesId, swipeId), highlightDuration);
+        removeHighlight(mesDiv, mesId, swipeId);
 
         await saveRewrittenText(mesId, swipeId, fullMessage, rawStartOffset, rawEndOffset, newText);
 
@@ -1092,7 +1041,6 @@ async function handleSimplifiedChatCompletionRewrite(mesId, swipeId, option, cus
     abortController.signal.mesDiv = mesDiv;
     abortController.signal.mesId = mesId;
     abortController.signal.swipeId = swipeId;
-    abortController.signal.highlightDuration = extension_settings[extensionName].highlightDuration;
 
     // Show the stop button
     getContext().deactivateSendButtons();
@@ -1127,8 +1075,7 @@ async function handleSimplifiedChatCompletionRewrite(mesId, swipeId, option, cus
     }
 
     // Remove highlight after x seconds when streaming is complete
-    const highlightDuration = extension_settings[extensionName].highlightDuration;
-    setTimeout(() => removeHighlight(mesDiv, mesId, swipeId), highlightDuration);
+    removeHighlight(mesDiv, mesId, swipeId);
 
     await saveRewrittenText(mesId, swipeId, fullMessage, rawStartOffset, rawEndOffset, newText);
     getContext().activateSendButtons();
@@ -1186,26 +1133,7 @@ async function handleTextBasedRewrite(mesId, swipeId, option, customInstructions
     }
 
     let generateData;
-    let amount_gen;
-
-    if (extension_settings[extensionName].useDynamicTokens) {
-        amount_gen = calculateTargetTokenCount(selectedRawText, option);
-    } else {
-        switch (option) {
-            case 'rewrite':
-                amount_gen = extension_settings[extensionName].rewriteTokens;
-                break;
-            case 'shorten':
-                amount_gen = extension_settings[extensionName].shortenTokens;
-                break;
-            case 'expand':
-                amount_gen = extension_settings[extensionName].expandTokens;
-                break;
-            case 'custom':
-                amount_gen = extension_settings[extensionName].customTokens;
-                break;
-        }
-    }
+    const amount_gen = calculateTargetTokenCount(selectedRawText);
 
     // Prepare generation data based on the selected model
     switch (main_api) {
@@ -1250,7 +1178,6 @@ async function handleTextBasedRewrite(mesId, swipeId, option, customInstructions
     abortController.signal.mesDiv = mesDiv;
     abortController.signal.mesId = mesId;
     abortController.signal.swipeId = swipeId;
-    abortController.signal.highlightDuration = extension_settings[extensionName].highlightDuration;
 
     // Show the stop button
     getContext().deactivateSendButtons();
@@ -1334,64 +1261,18 @@ async function handleTextBasedRewrite(mesId, swipeId, option, customInstructions
     }
 
     // Remove highlight after x seconds when streaming is complete
-    const highlightDuration = extension_settings[extensionName].highlightDuration;
-    setTimeout(() => removeHighlight(mesDiv, mesId, swipeId), highlightDuration);
+    removeHighlight(mesDiv, mesId, swipeId);
 
     await saveRewrittenText(mesId, swipeId, fullMessage, rawStartOffset, rawEndOffset, newText);
     getContext().activateSendButtons();
 }
 
-function calculateTargetTokenCount(selectedText, option) {
+function calculateTargetTokenCount(selectedText) {
     const baseTokenCount = getTokenCount(selectedText);
-    const useDynamicTokens = extension_settings[extensionName].useDynamicTokens;
-    const dynamicTokenMode = extension_settings[extensionName].dynamicTokenMode;
-    let result;
+    const fixedMultiplier = 5;
+    const result = baseTokenCount * fixedMultiplier;
 
-    if (useDynamicTokens) {
-        if (dynamicTokenMode === 'additive') {
-            let modifier;
-            switch (option) {
-                case 'rewrite':
-                    modifier = extension_settings[extensionName].rewriteTokensAdd;
-                    break;
-                case 'shorten':
-                    modifier = extension_settings[extensionName].shortenTokensAdd;
-                    break;
-                case 'expand':
-                    modifier = extension_settings[extensionName].expandTokensAdd;
-                    break;
-            }
-            result = baseTokenCount + modifier;
-        } else { // multiplicative
-            let multiplier;
-            switch (option) {
-                case 'rewrite':
-                    multiplier = extension_settings[extensionName].rewriteTokensMult;
-                    break;
-                case 'shorten':
-                    multiplier = extension_settings[extensionName].shortenTokensMult;
-                    break;
-                case 'expand':
-                    multiplier = extension_settings[extensionName].expandTokensMult;
-                    break;
-            }
-            result = baseTokenCount * multiplier;
-        }
-    } else {
-        switch (option) {
-            case 'rewrite':
-                result = extension_settings[extensionName].rewriteTokens;
-                break;
-            case 'shorten':
-                result = extension_settings[extensionName].shortenTokens;
-                break;
-            case 'expand':
-                result = extension_settings[extensionName].expandTokens;
-                break;
-        }
-    }
-
-    return Math.max(1, Math.round(result)); // Ensure at least 1 token and round to nearest integer
+    return Math.max(1, Math.round(result));
 }
 
 async function handleUndo(event) {
