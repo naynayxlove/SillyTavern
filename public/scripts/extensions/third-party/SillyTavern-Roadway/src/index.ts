@@ -346,10 +346,11 @@ async function handleUIChanges(): Promise<void> {
     presetSelectContainer.appendChild(presetSelectLabel);
     presetSelectContainer.appendChild(presetSelectElement);
 
-    const popupResult = await globalContext.Popup.show.confirm('Select Roadway Prompt Preset', presetSelectContainer, {
+    const popup = new (globalContext.Popup as any)(presetSelectContainer, 2, '', {
       okButton: 'Generate',
       cancelButton: 'Cancel',
     });
+    const popupResult = await popup.show();
 
     if (!popupResult) {
       return '';
