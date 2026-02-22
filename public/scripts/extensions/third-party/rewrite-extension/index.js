@@ -23,7 +23,6 @@ const extensionName = "rewrite-extension";
 const extensionFolderPath = `scripts/extensions/third-party/${extensionName}`;
 
 const undo_steps = 15;
-const highlightDisplayDurationMs = 1500;
 
 // Default settings
 const defaultSettings = {
@@ -306,7 +305,6 @@ function initRewriteMenu() {
 
 function handleStopRewrite() {
     if (abortController) {
-        const { mesDiv, mesId, swipeId } = abortController.signal;
         abortController.abort();
         // Restore the original settings
         if (abortController.signal.prev_oai_settings) {
@@ -315,8 +313,6 @@ function handleStopRewrite() {
 
         getContext().activateSendButtons();
 
-        // Call removeHighlight with the stored arguments
-        removeHighlight(mesDiv, mesId, swipeId);
     }
 }
 
@@ -564,10 +560,6 @@ function removeUndoButton(editedMesId) {
     updateUndoButtons();
 }
 
-function scheduleHighlightCleanup(mesDiv, mesId, swipeId) {
-    setTimeout(() => removeHighlight(mesDiv, mesId, swipeId), highlightDisplayDurationMs);
-}
-
 async function removeHighlight(mesDiv, mesId, swipeId) {
     const highlightSpan = mesDiv.querySelector('.animated-highlight');
     if (highlightSpan) {
@@ -799,6 +791,14 @@ async function handleRewrite(mesId, swipeId, option, customInstructions = null, 
         return; // Cannot proceed without selection info
     }
 
+    return openRewritePreviewDialog(mesId, swipeId, option, customInstructions, selectionInfo);
+}
+
+async function generateRewriteCandidate(mesId, swipeId, option, customInstructions, selectionInfo) {
+    if (!selectionInfo) {
+        return null;
+    }
+
     if (main_api === 'openai') {
         const selectedModel = extension_settings[extensionName].selectedModel;
         if (selectedModel === 'chat_completion') {
@@ -811,15 +811,125 @@ async function handleRewrite(mesId, swipeId, option, customInstructions = null, 
     }
 }
 
+async function openRewritePreviewDialog(mesId, swipeId, option, customInstructions, selectionInfo) {
+    const dialog = document.createElement('div');
+    dialog.style.cssText = 'position:fixed; inset:0; z-index:4000; background:rgba(0,0,0,0.55); display:flex; align-items:center; justify-content:center;';
+    dialog.innerHTML = `
+        <div style="width:min(820px,92vw); max-height:85vh; display:flex; flex-direction:column; background:var(--SmartThemeBodyColor); border:1px solid var(--SmartThemeBorderColor); border-radius:8px;">
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 12px; border-bottom:1px solid var(--SmartThemeBorderColor);">
+                <div class="flex-container alignitemscenter" style="gap:8px;">
+                    <button class="menu_button rewrite-preview-prev" title="Previous generation">◀</button>
+                    <span class="rewrite-preview-index">Generation 0 / 0</span>
+                    <button class="menu_button rewrite-preview-next" title="Next generation">▶</button>
+                </div>
+                <button class="menu_button rewrite-preview-close" title="Close">✕</button>
+            </div>
+            <div class="rewrite-preview-content" style="padding:12px; overflow:auto; white-space:pre-wrap; min-height:180px;">Generating...</div>
+            <div style="display:flex; justify-content:flex-end; gap:8px; padding:10px 12px; border-top:1px solid var(--SmartThemeBorderColor);">
+                <button class="menu_button rewrite-preview-apply">APPLY</button>
+                <button class="menu_button rewrite-preview-retry">RETRY</button>
+                <button class="menu_button rewrite-preview-cancel">CANCEL</button>
+            </div>
+        </div>`;
+    document.body.appendChild(dialog);
+
+    const content = dialog.querySelector('.rewrite-preview-content');
+    const indexLabel = dialog.querySelector('.rewrite-preview-index');
+    const prevButton = dialog.querySelector('.rewrite-preview-prev');
+    const nextButton = dialog.querySelector('.rewrite-preview-next');
+    const applyButton = dialog.querySelector('.rewrite-preview-apply');
+    const retryButton = dialog.querySelector('.rewrite-preview-retry');
+    const closeButton = dialog.querySelector('.rewrite-preview-close');
+    const cancelButton = dialog.querySelector('.rewrite-preview-cancel');
+
+    const generations = [];
+    let generationIndex = -1;
+    let isGenerating = false;
+
+    const renderGeneration = () => {
+        if (generationIndex < 0 || !generations[generationIndex]) {
+            indexLabel.textContent = 'Generation 0 / 0';
+            content.textContent = isGenerating ? 'Generating...' : 'No generations yet.';
+            return;
+        }
+        content.textContent = generations[generationIndex];
+        indexLabel.textContent = `Generation ${generationIndex + 1} / ${generations.length}`;
+    };
+
+    const onKeyDown = (event) => {
+        if (event.key === 'ArrowLeft') {
+            event.preventDefault();
+            prevButton.click();
+        } else if (event.key === 'ArrowRight') {
+            event.preventDefault();
+            nextButton.click();
+        } else if (event.key === 'Escape') {
+            cleanup();
+        }
+    };
+
+    const cleanup = () => {
+        if (isGenerating && abortController) {
+            abortController.abort();
+            getContext().activateSendButtons();
+        }
+        document.removeEventListener('keydown', onKeyDown);
+        dialog.remove();
+    };
+
+    const generate = async () => {
+        if (isGenerating) return;
+        isGenerating = true;
+        content.textContent = 'Generating...';
+        try {
+            const candidate = await generateRewriteCandidate(mesId, swipeId, option, customInstructions, selectionInfo);
+            if (typeof candidate === 'string' && candidate.length) {
+                generations.push(candidate);
+                generationIndex = generations.length - 1;
+            }
+        } catch (error) {
+            console.error('[Rewrite Extension] Failed to generate rewrite candidate:', error);
+        } finally {
+            isGenerating = false;
+            renderGeneration();
+        }
+    };
+
+    prevButton.addEventListener('click', () => {
+        if (!generations.length) return;
+        generationIndex = (generationIndex - 1 + generations.length) % generations.length;
+        renderGeneration();
+    });
+
+    nextButton.addEventListener('click', () => {
+        if (!generations.length) return;
+        generationIndex = (generationIndex + 1) % generations.length;
+        renderGeneration();
+    });
+
+    retryButton.addEventListener('click', generate);
+
+    applyButton.addEventListener('click', async () => {
+        if (generationIndex < 0 || !generations[generationIndex]) return;
+        const { fullMessage, rawStartOffset, rawEndOffset } = selectionInfo;
+        await saveRewrittenText(mesId, swipeId, fullMessage, rawStartOffset, rawEndOffset, generations[generationIndex]);
+        cleanup();
+    });
+
+    closeButton.addEventListener('click', cleanup);
+    cancelButton.addEventListener('click', cleanup);
+    dialog.addEventListener('click', (event) => {
+        if (event.target === dialog) cleanup();
+    });
+    document.addEventListener('keydown', onKeyDown);
+
+    await generate();
+}
+
 // Updated signature to accept selectionInfo
 async function handleChatCompletionRewrite(mesId, swipeId, option, customInstructions, selectionInfo) {
     // Use pre-captured selection info
-    const { fullMessage, selectedRawText, rawStartOffset, rawEndOffset, range } = selectionInfo;
-    const mesDiv = document.querySelector(`[mesid="${mesId}"] .mes_text`); // Keep getting mesDiv for highlight/DOM ops
-    if (!mesDiv) { // Add check for mesDiv existence
-        console.error("[Rewrite Extension] Could not find mesDiv in handleChatCompletionRewrite.");
-        return;
-    }
+    const { fullMessage, selectedRawText } = selectionInfo;
 
     // Get the selected preset based on the option
     let selectedPreset;
@@ -955,9 +1065,6 @@ async function handleChatCompletionRewrite(mesId, swipeId, option, customInstruc
 
     // Store the necessary data in the signal
     abortController.signal.prev_oai_settings = prev_oai_settings;
-    abortController.signal.mesDiv = mesDiv;
-    abortController.signal.mesId = mesId;
-    abortController.signal.swipeId = swipeId;
 
     // Show the stop button
     getContext().deactivateSendButtons();
@@ -980,59 +1087,26 @@ async function handleChatCompletionRewrite(mesId, swipeId, option, customInstruc
 
     // If the request failed, res will be undefined, stop further processing
     if (res === undefined) {
-        // Remove highlight immediately if the request failed before starting streaming/display
-        removeHighlight(mesDiv, mesId, swipeId);
-        return;
+        return null;
     }
 
     let newText = '';
-    try {
-        if (typeof res === 'function') {
-            // Streaming case
-            const streamingSpan = document.createElement('span');
-            streamingSpan.className = 'animated-highlight';
-
-            // Replace the selected text with the streaming span
-            range.deleteContents();
-            range.insertNode(streamingSpan);
-
-            for await (const chunk of res()) {
-                newText = chunk.text;
-                streamingSpan.textContent = newText;
-            }
-        } else {
-            // Non-streaming case
-            newText = res?.choices?.[0]?.message?.content ?? res?.choices?.[0]?.text ?? res?.text ?? '';
-            const highlightedNewText = document.createElement('span');
-            highlightedNewText.className = 'animated-highlight';
-            highlightedNewText.textContent = newText;
-
-            range.deleteContents();
-            range.insertNode(highlightedNewText);
+    if (typeof res === 'function') {
+        for await (const chunk of res()) {
+            newText = chunk.text;
         }
-
-        scheduleHighlightCleanup(mesDiv, mesId, swipeId);
-
-        await saveRewrittenText(mesId, swipeId, fullMessage, rawStartOffset, rawEndOffset, newText);
-
-    } catch (error) {
-        console.error('[Rewrite Extension] Error processing API response:', error);
-        toastr.error("Failed to process rewrite response. Check console.", "Processing Error");
-        // Ensure highlight is removed if processing fails
-        removeHighlight(mesDiv, mesId, swipeId);
+    } else {
+        newText = res?.choices?.[0]?.message?.content ?? res?.choices?.[0]?.text ?? res?.text ?? '';
     }
-    // activateSendButtons is now handled in the finally block above
+
+    return newText;
 }
+
 
 // Updated signature to accept selectionInfo
 async function handleSimplifiedChatCompletionRewrite(mesId, swipeId, option, customInstructions, selectionInfo) {
     // Use pre-captured selection info
-    const { fullMessage, selectedRawText, rawStartOffset, rawEndOffset, range } = selectionInfo;
-    const mesDiv = document.querySelector(`[mesid="${mesId}"] .mes_text`); // Keep getting mesDiv for highlight/DOM ops
-    if (!mesDiv) { // Add check for mesDiv existence
-        console.error("[Rewrite Extension] Could not find mesDiv in handleSimplifiedChatCompletionRewrite.");
-        return;
-    }
+    const { fullMessage, selectedRawText } = selectionInfo;
     // Get the text completion prompt based on the option
     let promptTemplate;
     switch (option) {
@@ -1085,10 +1159,6 @@ async function handleSimplifiedChatCompletionRewrite(mesId, swipeId, option, cus
     // Create a new AbortController
     abortController = new AbortController();
 
-    // Store the necessary data in the signal
-    abortController.signal.mesDiv = mesDiv;
-    abortController.signal.mesId = mesId;
-    abortController.signal.swipeId = swipeId;
 
     // Show the stop button
     getContext().deactivateSendButtons();
@@ -1099,45 +1169,22 @@ async function handleSimplifiedChatCompletionRewrite(mesId, swipeId, option, cus
     let newText = '';
 
     if (typeof res === 'function') {
-        // Streaming case
-        const streamingSpan = document.createElement('span');
-        streamingSpan.className = 'animated-highlight';
-
-        // Replace the selected text with the streaming span
-        range.deleteContents();
-        range.insertNode(streamingSpan);
-
         for await (const chunk of res()) {
             newText = chunk.text;
-            streamingSpan.textContent = newText;
         }
     } else {
-        // Non-streaming case
         newText = res?.choices?.[0]?.message?.content ?? '';
-        const highlightedNewText = document.createElement('span');
-        highlightedNewText.className = 'animated-highlight';
-        highlightedNewText.textContent = newText;
-
-        range.deleteContents();
-        range.insertNode(highlightedNewText);
     }
 
-    // Keep the highlight visible briefly after rewrite
-    scheduleHighlightCleanup(mesDiv, mesId, swipeId);
-
-    await saveRewrittenText(mesId, swipeId, fullMessage, rawStartOffset, rawEndOffset, newText);
     getContext().activateSendButtons();
+    return newText;
 }
+
 
 // Updated signature to accept selectionInfo
 async function handleTextBasedRewrite(mesId, swipeId, option, customInstructions, selectionInfo) {
     // Use pre-captured selection info
-    const { fullMessage, selectedRawText, rawStartOffset, rawEndOffset, range } = selectionInfo;
-    const mesDiv = document.querySelector(`[mesid="${mesId}"] .mes_text`); // Keep getting mesDiv for highlight/DOM ops
-    if (!mesDiv) { // Add check for mesDiv existence
-        console.error("[Rewrite Extension] Could not find mesDiv in handleTextBasedRewrite.");
-        return;
-    }
+    const { fullMessage, selectedRawText } = selectionInfo;
     // Get the selected model and option-specific prompt
     const selectedModel = extension_settings[extensionName].selectedModel;
     let promptTemplate;
@@ -1222,10 +1269,6 @@ async function handleTextBasedRewrite(mesId, swipeId, option, customInstructions
     // Create a new AbortController
     abortController = new AbortController();
 
-    // Store the necessary data in the signal
-    abortController.signal.mesDiv = mesDiv;
-    abortController.signal.mesId = mesId;
-    abortController.signal.swipeId = swipeId;
 
     // Show the stop button
     getContext().deactivateSendButtons();
@@ -1283,36 +1326,16 @@ async function handleTextBasedRewrite(mesId, swipeId, option, customInstructions
     let newText = '';
 
     if (typeof res === 'function') {
-        // Streaming case
-
-        const streamingSpan = document.createElement('span');
-        streamingSpan.className = 'animated-highlight';
-
-        // Replace the selected text with the streaming span
-        range.deleteContents();
-        range.insertNode(streamingSpan);
-
         for await (const chunk of res()) {
             newText = chunk.text;
-            streamingSpan.textContent = newText;
         }
     } else {
-        // Non-streaming case
         newText = res?.choices?.[0]?.message?.content ?? res?.choices?.[0]?.text ?? res?.text ?? '';
         if (main_api === 'novel') newText = res.output;
-        const highlightedNewText = document.createElement('span');
-        highlightedNewText.className = 'animated-highlight';
-        highlightedNewText.textContent = newText;
-
-        range.deleteContents();
-        range.insertNode(highlightedNewText);
     }
 
-    // Keep the highlight visible briefly after rewrite
-    scheduleHighlightCleanup(mesDiv, mesId, swipeId);
-
-    await saveRewrittenText(mesId, swipeId, fullMessage, rawStartOffset, rawEndOffset, newText);
     getContext().activateSendButtons();
+    return newText;
 }
 
 function calculateTargetTokenCount(selectedText) {
