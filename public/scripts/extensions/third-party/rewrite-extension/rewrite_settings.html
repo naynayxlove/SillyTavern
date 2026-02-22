@@ -1,0 +1,314 @@
+<div class="rewrite-extension-settings">
+    <div class="inline-drawer">
+        <div class="inline-drawer-toggle inline-drawer-header">
+            <b>Rewrite Extension</b>
+            <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
+        </div>
+        <div class="inline-drawer-content">
+            <div class="rewrite-extension_block flex-container">
+                <label for="rewrite_extension_model_select">Configure Model:</label>
+                <span class="tooltip-icon fa-solid fa-circle-question" data-tooltip="Choose which Completion type to configure. For Chat Completion this affects if presets or templates are used."></span>
+                <select id="rewrite_extension_model_select" class="text_pole">
+                    <option value="chat_completion">Chat Completion</option>
+                    <option value="textgenerationwebui">Text Completion/NovelAI</option>
+                </select>
+            </div>
+
+            <div id="chat_completion_settings" class="model-specific-settings">
+                <div class="rewrite-extension_block flex-container">
+                    <label for="rewrite_preset">Rewrite Preset:</label>
+                    <span class="tooltip-icon fa-solid fa-circle-question" data-tooltip="To use a simple 'System: prompt', switch to Text Completion. This will always use the preset's max tokens setting."></span>
+                    <select id="rewrite_preset" class="text_pole" data-preset-manager-for="rewrite">
+                        <!-- Options will be populated dynamically -->
+                    </select>
+                </div>
+
+                <div class="rewrite-extension_block flex-container">
+                    <label for="shorten_preset">Shorten Preset:</label>
+                    <select id="shorten_preset" class="text_pole" data-preset-manager-for="shorten">
+                        <!-- Options will be populated dynamically -->
+                    </select>
+                </div>
+
+                <div class="rewrite-extension_block flex-container">
+                    <label for="expand_preset">Expand Preset:</label>
+                    <select id="expand_preset" class="text_pole" data-preset-manager-for="expand">
+                        <!-- Options will be populated dynamically -->
+                    </select>
+                </div>
+
+                <div class="rewrite-extension_block flex-container">
+                    <label for="custom_preset">Custom Preset:</label>
+                    <select id="custom_preset" class="text_pole" data-preset-manager-for="custom">
+                        <!-- Options will be populated dynamically -->
+                    </select>
+                </div>
+
+                <div class="rewrite-extension_block flex-container checkbox-container">
+                    <div class="checkbox-label-group">
+                        <input type="checkbox" id="override_max_tokens" class="checkbox" checked>
+                        <label for="override_max_tokens">Override Preset Max Tokens</label>
+                    </div>
+                    <span class="tooltip-icon fa-solid fa-circle-question" data-tooltip="If checked, the extension will override the max tokens set in the chat completion preset."></span>
+                </div>
+            </div>
+
+            <div id="text_based_settings" class="model-specific-settings" style="display: none;">
+                <div id="rewrite_option_widgets" class="rewrite-option-widgets">
+                    <div class="rewrite-extension_block rewrite-option-widget" data-option-key="rewrite" style="border: 1px solid var(--SmartThemeBorderColor); padding: 8px; margin-bottom: 10px;">
+                        <div class="flex-container alignitemscenter" style="gap: 8px; flex-wrap: nowrap;">
+                            <span class="drag-handle menu_button fa-solid fa-grip-vertical" title="Drag to reorder"></span>
+                            <input type="checkbox" id="show_rewrite" class="checkbox" checked>
+                            <label for="show_rewrite" style="white-space: nowrap;">Visible</label>
+                            <div class="flex-container alignitemscenter" style="gap: 6px; flex: 1;">
+                                <label for="rewrite_label">Button Name:</label>
+                                <input type="text" id="rewrite_label" class="text_pole" placeholder="Rewrite" style="margin: 0;">
+                            </div>
+                        </div>
+                        <div style="margin-top: 6px;">
+                            <textarea id="text_rewrite_prompt" class="text_pole" rows="3" placeholder="Enter rewrite prompt"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="rewrite-extension_block rewrite-option-widget" data-option-key="shorten" style="border: 1px solid var(--SmartThemeBorderColor); padding: 8px; margin-bottom: 10px;">
+                        <div class="flex-container alignitemscenter" style="gap: 8px; flex-wrap: nowrap;">
+                            <span class="drag-handle menu_button fa-solid fa-grip-vertical" title="Drag to reorder"></span>
+                            <input type="checkbox" id="show_shorten" class="checkbox" checked>
+                            <label for="show_shorten" style="white-space: nowrap;">Visible</label>
+                            <div class="flex-container alignitemscenter" style="gap: 6px; flex: 1;">
+                                <label for="shorten_label">Button Name:</label>
+                                <input type="text" id="shorten_label" class="text_pole" placeholder="Shorten" style="margin: 0;">
+                            </div>
+                        </div>
+                        <div style="margin-top: 6px;">
+                            <textarea id="text_shorten_prompt" class="text_pole" rows="3" placeholder="Enter shorten prompt"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="rewrite-extension_block rewrite-option-widget" data-option-key="expand" style="border: 1px solid var(--SmartThemeBorderColor); padding: 8px; margin-bottom: 10px;">
+                        <div class="flex-container alignitemscenter" style="gap: 8px; flex-wrap: nowrap;">
+                            <span class="drag-handle menu_button fa-solid fa-grip-vertical" title="Drag to reorder"></span>
+                            <input type="checkbox" id="show_expand" class="checkbox" checked>
+                            <label for="show_expand" style="white-space: nowrap;">Visible</label>
+                            <div class="flex-container alignitemscenter" style="gap: 6px; flex: 1;">
+                                <label for="expand_label">Button Name:</label>
+                                <input type="text" id="expand_label" class="text_pole" placeholder="Expand" style="margin: 0;">
+                            </div>
+                        </div>
+                        <div style="margin-top: 6px;">
+                            <textarea id="text_expand_prompt" class="text_pole" rows="3" placeholder="Enter expand prompt"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="rewrite-extension_block rewrite-option-widget" data-option-key="custom" style="border: 1px solid var(--SmartThemeBorderColor); padding: 8px; margin-bottom: 10px;">
+                        <div class="flex-container alignitemscenter" style="gap: 8px; flex-wrap: nowrap;">
+                            <span class="menu_button fa-solid fa-lock" title="Custom is fixed" style="opacity: 0.6; cursor: default;"></span>
+                            <input type="checkbox" id="show_custom" class="checkbox" checked>
+                            <label for="show_custom" style="white-space: nowrap;">Visible</label>
+                            <div class="flex-container alignitemscenter" style="gap: 6px; flex: 1;">
+                                <label for="custom_label">Button Name:</label>
+                                <input type="text" id="custom_label" class="text_pole" value="Custom" readonly style="margin: 0; opacity: 0.8;">
+                            </div>
+                        </div>
+                        <div style="margin-top: 6px;">
+                            <textarea id="text_custom_prompt" class="text_pole" rows="3" placeholder="Enter custom prompt. Use {{custom_instructions}} macro."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="rewrite-extension_block rewrite-option-widget" data-option-key="extra1" style="border: 1px solid var(--SmartThemeBorderColor); padding: 8px; margin-bottom: 10px;">
+                        <div class="flex-container alignitemscenter" style="gap: 8px; flex-wrap: nowrap;">
+                            <span class="drag-handle menu_button fa-solid fa-grip-vertical" title="Drag to reorder"></span>
+                            <input type="checkbox" id="show_extra1" class="checkbox" checked>
+                            <label for="show_extra1" style="white-space: nowrap;">Visible</label>
+                            <div class="flex-container alignitemscenter" style="gap: 6px; flex: 1;">
+                                <label for="extra1_label">Button Name:</label>
+                                <input type="text" id="extra1_label" class="text_pole" placeholder="Option 1" style="margin: 0;">
+                            </div>
+                        </div>
+                        <div style="margin-top: 6px;">
+                            <textarea id="text_extra1_prompt" class="text_pole" rows="3" placeholder="Enter prompt for option 1"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="rewrite-extension_block rewrite-option-widget" data-option-key="extra2" style="border: 1px solid var(--SmartThemeBorderColor); padding: 8px; margin-bottom: 10px;">
+                        <div class="flex-container alignitemscenter" style="gap: 8px; flex-wrap: nowrap;">
+                            <span class="drag-handle menu_button fa-solid fa-grip-vertical" title="Drag to reorder"></span>
+                            <input type="checkbox" id="show_extra2" class="checkbox" checked>
+                            <label for="show_extra2" style="white-space: nowrap;">Visible</label>
+                            <div class="flex-container alignitemscenter" style="gap: 6px; flex: 1;">
+                                <label for="extra2_label">Button Name:</label>
+                                <input type="text" id="extra2_label" class="text_pole" placeholder="Option 2" style="margin: 0;">
+                            </div>
+                        </div>
+                        <div style="margin-top: 6px;">
+                            <textarea id="text_extra2_prompt" class="text_pole" rows="3" placeholder="Enter prompt for option 2"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="rewrite-extension_block rewrite-option-widget" data-option-key="extra3" style="border: 1px solid var(--SmartThemeBorderColor); padding: 8px; margin-bottom: 10px;">
+                        <div class="flex-container alignitemscenter" style="gap: 8px; flex-wrap: nowrap;">
+                            <span class="drag-handle menu_button fa-solid fa-grip-vertical" title="Drag to reorder"></span>
+                            <input type="checkbox" id="show_extra3" class="checkbox" checked>
+                            <label for="show_extra3" style="white-space: nowrap;">Visible</label>
+                            <div class="flex-container alignitemscenter" style="gap: 6px; flex: 1;">
+                                <label for="extra3_label">Button Name:</label>
+                                <input type="text" id="extra3_label" class="text_pole" placeholder="Option 3" style="margin: 0;">
+                            </div>
+                        </div>
+                        <div style="margin-top: 6px;">
+                            <textarea id="text_extra3_prompt" class="text_pole" rows="3" placeholder="Enter prompt for option 3"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="rewrite-extension_block rewrite-option-widget" data-option-key="extra4" style="border: 1px solid var(--SmartThemeBorderColor); padding: 8px; margin-bottom: 10px;">
+                        <div class="flex-container alignitemscenter" style="gap: 8px; flex-wrap: nowrap;">
+                            <span class="drag-handle menu_button fa-solid fa-grip-vertical" title="Drag to reorder"></span>
+                            <input type="checkbox" id="show_extra4" class="checkbox" checked>
+                            <label for="show_extra4" style="white-space: nowrap;">Visible</label>
+                            <div class="flex-container alignitemscenter" style="gap: 6px; flex: 1;">
+                                <label for="extra4_label">Button Name:</label>
+                                <input type="text" id="extra4_label" class="text_pole" placeholder="Option 4" style="margin: 0;">
+                            </div>
+                        </div>
+                        <div style="margin-top: 6px;">
+                            <textarea id="text_extra4_prompt" class="text_pole" rows="3" placeholder="Enter prompt for option 4"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="rewrite-extension_block rewrite-option-widget" data-option-key="extra5" style="border: 1px solid var(--SmartThemeBorderColor); padding: 8px; margin-bottom: 10px;">
+                        <div class="flex-container alignitemscenter" style="gap: 8px; flex-wrap: nowrap;">
+                            <span class="drag-handle menu_button fa-solid fa-grip-vertical" title="Drag to reorder"></span>
+                            <input type="checkbox" id="show_extra5" class="checkbox" checked>
+                            <label for="show_extra5" style="white-space: nowrap;">Visible</label>
+                            <div class="flex-container alignitemscenter" style="gap: 6px; flex: 1;">
+                                <label for="extra5_label">Button Name:</label>
+                                <input type="text" id="extra5_label" class="text_pole" placeholder="Option 5" style="margin: 0;">
+                            </div>
+                        </div>
+                        <div style="margin-top: 6px;">
+                            <textarea id="text_extra5_prompt" class="text_pole" rows="3" placeholder="Enter prompt for option 5"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="rewrite-extension_block rewrite-option-widget" data-option-key="extra6" style="border: 1px solid var(--SmartThemeBorderColor); padding: 8px; margin-bottom: 10px;">
+                        <div class="flex-container alignitemscenter" style="gap: 8px; flex-wrap: nowrap;">
+                            <span class="drag-handle menu_button fa-solid fa-grip-vertical" title="Drag to reorder"></span>
+                            <input type="checkbox" id="show_extra6" class="checkbox" checked>
+                            <label for="show_extra6" style="white-space: nowrap;">Visible</label>
+                            <div class="flex-container alignitemscenter" style="gap: 6px; flex: 1;">
+                                <label for="extra6_label">Button Name:</label>
+                                <input type="text" id="extra6_label" class="text_pole" placeholder="Option 6" style="margin: 0;">
+                            </div>
+                        </div>
+                        <div style="margin-top: 6px;">
+                            <textarea id="text_extra6_prompt" class="text_pole" rows="3" placeholder="Enter prompt for option 6"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="rewrite-extension_block rewrite-option-widget" data-option-key="extra7" style="border: 1px solid var(--SmartThemeBorderColor); padding: 8px; margin-bottom: 10px;">
+                        <div class="flex-container alignitemscenter" style="gap: 8px; flex-wrap: nowrap;">
+                            <span class="drag-handle menu_button fa-solid fa-grip-vertical" title="Drag to reorder"></span>
+                            <input type="checkbox" id="show_extra7" class="checkbox" checked>
+                            <label for="show_extra7" style="white-space: nowrap;">Visible</label>
+                            <div class="flex-container alignitemscenter" style="gap: 6px; flex: 1;">
+                                <label for="extra7_label">Button Name:</label>
+                                <input type="text" id="extra7_label" class="text_pole" placeholder="Option 7" style="margin: 0;">
+                            </div>
+                        </div>
+                        <div style="margin-top: 6px;">
+                            <textarea id="text_extra7_prompt" class="text_pole" rows="3" placeholder="Enter prompt for option 7"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="rewrite-extension_block rewrite-option-widget" data-option-key="extra8" style="border: 1px solid var(--SmartThemeBorderColor); padding: 8px; margin-bottom: 10px;">
+                        <div class="flex-container alignitemscenter" style="gap: 8px; flex-wrap: nowrap;">
+                            <span class="drag-handle menu_button fa-solid fa-grip-vertical" title="Drag to reorder"></span>
+                            <input type="checkbox" id="show_extra8" class="checkbox" checked>
+                            <label for="show_extra8" style="white-space: nowrap;">Visible</label>
+                            <div class="flex-container alignitemscenter" style="gap: 6px; flex: 1;">
+                                <label for="extra8_label">Button Name:</label>
+                                <input type="text" id="extra8_label" class="text_pole" placeholder="Option 8" style="margin: 0;">
+                            </div>
+                        </div>
+                        <div style="margin-top: 6px;">
+                            <textarea id="text_extra8_prompt" class="text_pole" rows="3" placeholder="Enter prompt for option 8"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="rewrite-extension_block rewrite-option-widget" data-option-key="extra9" style="border: 1px solid var(--SmartThemeBorderColor); padding: 8px; margin-bottom: 10px;">
+                        <div class="flex-container alignitemscenter" style="gap: 8px; flex-wrap: nowrap;">
+                            <span class="drag-handle menu_button fa-solid fa-grip-vertical" title="Drag to reorder"></span>
+                            <input type="checkbox" id="show_extra9" class="checkbox" checked>
+                            <label for="show_extra9" style="white-space: nowrap;">Visible</label>
+                            <div class="flex-container alignitemscenter" style="gap: 6px; flex: 1;">
+                                <label for="extra9_label">Button Name:</label>
+                                <input type="text" id="extra9_label" class="text_pole" placeholder="Option 9" style="margin: 0;">
+                            </div>
+                        </div>
+                        <div style="margin-top: 6px;">
+                            <textarea id="text_extra9_prompt" class="text_pole" rows="3" placeholder="Enter prompt for option 9"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="rewrite-extension_block rewrite-option-widget" data-option-key="extra10" style="border: 1px solid var(--SmartThemeBorderColor); padding: 8px; margin-bottom: 10px;">
+                        <div class="flex-container alignitemscenter" style="gap: 8px; flex-wrap: nowrap;">
+                            <span class="drag-handle menu_button fa-solid fa-grip-vertical" title="Drag to reorder"></span>
+                            <input type="checkbox" id="show_extra10" class="checkbox" checked>
+                            <label for="show_extra10" style="white-space: nowrap;">Visible</label>
+                            <div class="flex-container alignitemscenter" style="gap: 6px; flex: 1;">
+                                <label for="extra10_label">Button Name:</label>
+                                <input type="text" id="extra10_label" class="text_pole" placeholder="Option 10" style="margin: 0;">
+                            </div>
+                        </div>
+                        <div style="margin-top: 6px;">
+                            <textarea id="text_extra10_prompt" class="text_pole" rows="3" placeholder="Enter prompt for option 10"></textarea>
+                        </div>
+                    </div>
+                </div>
+                </div>
+            </div>
+
+            <hr class="sysHR" />
+
+            <!-- Universal settings -->
+            <div class="rewrite-extension_block flex-container checkbox-container">
+                <div class="checkbox-label-group">
+                    <input type="checkbox" id="use_streaming" class="checkbox">
+                    <label for="use_streaming">Use Streaming</label>
+                </div>
+                <span class="tooltip-icon fa-solid fa-circle-question" data-tooltip="Enable to see the rewritten text appear gradually. Might not work for all APIs."></span>
+            </div>
+
+            <div class="rewrite-extension_block flex-container checkbox-container">
+                <div class="checkbox-label-group">
+                    <input type="checkbox" id="apply_regex_on_rewrite" class="checkbox">
+                    <label for="apply_regex_on_rewrite">Apply Regex on Rewrite</label>
+                </div>
+                <span class="tooltip-icon fa-solid fa-circle-question" data-tooltip="If checked, applies configured AI Output regex scripts to the rewritten text."></span>
+            </div>
+
+            <div class="rewrite-extension_block" style="margin-top: 15px;">
+                <div class="flex-container">
+                    <div style="width: 49%;">
+                        <label for="remove_prefix">Remove Prefix:</label>
+                        <span class="tooltip-icon fa-solid fa-circle-question" data-tooltip="Text to remove from the beginning of the AI's response."></span>
+                    </div>
+                    <div style="width: 49%;">
+                        <label for="remove_suffix">Remove Suffix:</label>
+                        <span class="tooltip-icon fa-solid fa-circle-question" data-tooltip="Text to remove from the end of the AI's response."></span>
+                    </div>
+                </div>
+                <div class="flex-container" style="margin-top: 5px;">
+                    <input type="text" id="remove_prefix" class="text_pole" style="width: 49%;" placeholder="Prefix to remove">
+                    <input type="text" id="remove_suffix" class="text_pole" style="width: 49%;" placeholder="Suffix to remove">
+                </div>
+            </div>
+
+            <hr class="sysHR" />
+            <div class="rewrite-extension_block checkbox-container">
+                <input type="checkbox" id="show_delete" class="checkbox" checked>
+                <label for="show_delete">Show Delete</label>
+            </div>
+        </div>
+    </div>
+</div>
