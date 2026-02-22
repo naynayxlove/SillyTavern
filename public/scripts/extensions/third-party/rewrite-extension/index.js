@@ -794,7 +794,7 @@ async function handleRewrite(mesId, swipeId, option, customInstructions = null, 
     return openRewritePreviewDialog(mesId, swipeId, option, customInstructions, selectionInfo);
 }
 
-async function generateRewriteCandidate(mesId, swipeId, option, customInstructions, selectionInfo) {
+async function generateRewriteCandidate(mesId, swipeId, option, customInstructions, selectionInfo, onProgress) {
     if (!selectionInfo) {
         return null;
     }
@@ -802,20 +802,20 @@ async function generateRewriteCandidate(mesId, swipeId, option, customInstructio
     if (main_api === 'openai') {
         const selectedModel = extension_settings[extensionName].selectedModel;
         if (selectedModel === 'chat_completion') {
-            return handleChatCompletionRewrite(mesId, swipeId, option, customInstructions, selectionInfo); // Pass selectionInfo
+            return handleChatCompletionRewrite(mesId, swipeId, option, customInstructions, selectionInfo, onProgress); // Pass selectionInfo
         } else {
-            return handleSimplifiedChatCompletionRewrite(mesId, swipeId, option, customInstructions, selectionInfo); // Pass selectionInfo
+            return handleSimplifiedChatCompletionRewrite(mesId, swipeId, option, customInstructions, selectionInfo, onProgress); // Pass selectionInfo
         }
     } else {
-        return handleTextBasedRewrite(mesId, swipeId, option, customInstructions, selectionInfo); // Pass selectionInfo
+        return handleTextBasedRewrite(mesId, swipeId, option, customInstructions, selectionInfo, onProgress); // Pass selectionInfo
     }
 }
 
 async function openRewritePreviewDialog(mesId, swipeId, option, customInstructions, selectionInfo) {
     const dialog = document.createElement('div');
-    dialog.style.cssText = 'position:fixed; inset:0; z-index:4000; background:rgba(0,0,0,0.55); display:flex; align-items:center; justify-content:center;';
+    dialog.style.cssText = 'position:fixed; inset:0; z-index:4000; background:var(--black30a); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center;';
     dialog.innerHTML = `
-        <div style="width:min(820px,92vw); max-height:85vh; display:flex; flex-direction:column; background:var(--SmartThemeBodyColor); border:1px solid var(--SmartThemeBorderColor); border-radius:8px;">
+        <div style="width:min(820px,92vw); max-height:85vh; display:flex; flex-direction:column; background:var(--SmartThemeBlurTintColor); border:1px solid var(--SmartThemeBorderColor); border-radius:12px; box-shadow:0 10px 30px var(--black50a);">
             <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 12px; border-bottom:1px solid var(--SmartThemeBorderColor);">
                 <div class="flex-container alignitemscenter" style="gap:8px;">
                     <button class="menu_button rewrite-preview-prev" title="Previous generation">◀</button>
@@ -824,7 +824,7 @@ async function openRewritePreviewDialog(mesId, swipeId, option, customInstructio
                 </div>
                 <button class="menu_button rewrite-preview-close" title="Close">✕</button>
             </div>
-            <div class="rewrite-preview-content" style="padding:12px; overflow:auto; white-space:pre-wrap; min-height:180px;">Generating...</div>
+            <div class="rewrite-preview-content" style="padding:12px; overflow:auto; white-space:pre-wrap; min-height:180px; font-family: var(--mainFontFamily);">Generating...</div>
             <div style="display:flex; justify-content:flex-end; gap:8px; padding:10px 12px; border-top:1px solid var(--SmartThemeBorderColor);">
                 <button class="menu_button rewrite-preview-apply">APPLY</button>
                 <button class="menu_button rewrite-preview-retry">RETRY</button>
@@ -882,7 +882,9 @@ async function openRewritePreviewDialog(mesId, swipeId, option, customInstructio
         isGenerating = true;
         content.textContent = 'Generating...';
         try {
-            const candidate = await generateRewriteCandidate(mesId, swipeId, option, customInstructions, selectionInfo);
+            const candidate = await generateRewriteCandidate(mesId, swipeId, option, customInstructions, selectionInfo, (partialText) => {
+                content.textContent = partialText || 'Generating...';
+            });
             if (typeof candidate === 'string' && candidate.length) {
                 generations.push(candidate);
                 generationIndex = generations.length - 1;
@@ -927,7 +929,7 @@ async function openRewritePreviewDialog(mesId, swipeId, option, customInstructio
 }
 
 // Updated signature to accept selectionInfo
-async function handleChatCompletionRewrite(mesId, swipeId, option, customInstructions, selectionInfo) {
+async function handleChatCompletionRewrite(mesId, swipeId, option, customInstructions, selectionInfo, onProgress = null) {
     // Use pre-captured selection info
     const { fullMessage, selectedRawText } = selectionInfo;
 
@@ -1094,9 +1096,15 @@ async function handleChatCompletionRewrite(mesId, swipeId, option, customInstruc
     if (typeof res === 'function') {
         for await (const chunk of res()) {
             newText = chunk.text;
+            if (typeof onProgress === 'function') {
+                onProgress(newText);
+            }
         }
     } else {
         newText = res?.choices?.[0]?.message?.content ?? res?.choices?.[0]?.text ?? res?.text ?? '';
+        if (typeof onProgress === 'function') {
+            onProgress(newText);
+        }
     }
 
     return newText;
@@ -1104,7 +1112,7 @@ async function handleChatCompletionRewrite(mesId, swipeId, option, customInstruc
 
 
 // Updated signature to accept selectionInfo
-async function handleSimplifiedChatCompletionRewrite(mesId, swipeId, option, customInstructions, selectionInfo) {
+async function handleSimplifiedChatCompletionRewrite(mesId, swipeId, option, customInstructions, selectionInfo, onProgress = null) {
     // Use pre-captured selection info
     const { fullMessage, selectedRawText } = selectionInfo;
     // Get the text completion prompt based on the option
@@ -1171,9 +1179,15 @@ async function handleSimplifiedChatCompletionRewrite(mesId, swipeId, option, cus
     if (typeof res === 'function') {
         for await (const chunk of res()) {
             newText = chunk.text;
+            if (typeof onProgress === 'function') {
+                onProgress(newText);
+            }
         }
     } else {
         newText = res?.choices?.[0]?.message?.content ?? '';
+        if (typeof onProgress === 'function') {
+            onProgress(newText);
+        }
     }
 
     getContext().activateSendButtons();
@@ -1182,7 +1196,7 @@ async function handleSimplifiedChatCompletionRewrite(mesId, swipeId, option, cus
 
 
 // Updated signature to accept selectionInfo
-async function handleTextBasedRewrite(mesId, swipeId, option, customInstructions, selectionInfo) {
+async function handleTextBasedRewrite(mesId, swipeId, option, customInstructions, selectionInfo, onProgress = null) {
     // Use pre-captured selection info
     const { fullMessage, selectedRawText } = selectionInfo;
     // Get the selected model and option-specific prompt
@@ -1328,10 +1342,16 @@ async function handleTextBasedRewrite(mesId, swipeId, option, customInstructions
     if (typeof res === 'function') {
         for await (const chunk of res()) {
             newText = chunk.text;
+            if (typeof onProgress === 'function') {
+                onProgress(newText);
+            }
         }
     } else {
         newText = res?.choices?.[0]?.message?.content ?? res?.choices?.[0]?.text ?? res?.text ?? '';
         if (main_api === 'novel') newText = res.output;
+        if (typeof onProgress === 'function') {
+            onProgress(newText);
+        }
     }
 
     getContext().activateSendButtons();
