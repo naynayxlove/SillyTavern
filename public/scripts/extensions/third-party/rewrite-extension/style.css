@@ -235,3 +235,7 @@
     opacity: 0.6;
     pointer-events: none;
 }
+
+.rewrite-menu-item-delete {
+    color: var(--danger, #e53935);
+}

@@ -602,6 +602,9 @@ function createRewriteMenu() {
             let li = document.createElement('li');
             li.className = 'list-group-item ctx-item';
             li.textContent = option.name;
+            if (option.key === 'delete') {
+                li.classList.add('rewrite-menu-item-delete');
+            }
             li.addEventListener('mousedown', handleMenuItemClick);
             li.addEventListener('touchstart', handleMenuItemClick);
             li.dataset.option = option.key;
