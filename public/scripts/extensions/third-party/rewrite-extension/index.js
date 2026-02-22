@@ -34,6 +34,36 @@ const defaultSettings = {
     shortenLabel: "Shorten",
     expandLabel: "Expand",
     customLabel: "Custom",
+    extra1Label: "Option 1",
+    extra2Label: "Option 2",
+    extra3Label: "Option 3",
+    extra4Label: "Option 4",
+    extra5Label: "Option 5",
+    extra6Label: "Option 6",
+    extra7Label: "Option 7",
+    extra8Label: "Option 8",
+    extra9Label: "Option 9",
+    extra10Label: "Option 10",
+    textExtra1Prompt: "[INST]Rewrite this section of text: \"\"\"{{rewrite}}\"\"\". Follow these instructions carefully.[/INST]\n\nSure, here is only the rewritten text without any comments: ",
+    textExtra2Prompt: "[INST]Rewrite this section of text: \"\"\"{{rewrite}}\"\"\". Follow these instructions carefully.[/INST]\n\nSure, here is only the rewritten text without any comments: ",
+    textExtra3Prompt: "[INST]Rewrite this section of text: \"\"\"{{rewrite}}\"\"\". Follow these instructions carefully.[/INST]\n\nSure, here is only the rewritten text without any comments: ",
+    textExtra4Prompt: "[INST]Rewrite this section of text: \"\"\"{{rewrite}}\"\"\". Follow these instructions carefully.[/INST]\n\nSure, here is only the rewritten text without any comments: ",
+    textExtra5Prompt: "[INST]Rewrite this section of text: \"\"\"{{rewrite}}\"\"\". Follow these instructions carefully.[/INST]\n\nSure, here is only the rewritten text without any comments: ",
+    textExtra6Prompt: "[INST]Rewrite this section of text: \"\"\"{{rewrite}}\"\"\". Follow these instructions carefully.[/INST]\n\nSure, here is only the rewritten text without any comments: ",
+    textExtra7Prompt: "[INST]Rewrite this section of text: \"\"\"{{rewrite}}\"\"\". Follow these instructions carefully.[/INST]\n\nSure, here is only the rewritten text without any comments: ",
+    textExtra8Prompt: "[INST]Rewrite this section of text: \"\"\"{{rewrite}}\"\"\". Follow these instructions carefully.[/INST]\n\nSure, here is only the rewritten text without any comments: ",
+    textExtra9Prompt: "[INST]Rewrite this section of text: \"\"\"{{rewrite}}\"\"\". Follow these instructions carefully.[/INST]\n\nSure, here is only the rewritten text without any comments: ",
+    textExtra10Prompt: "[INST]Rewrite this section of text: \"\"\"{{rewrite}}\"\"\". Follow these instructions carefully.[/INST]\n\nSure, here is only the rewritten text without any comments: ",
+    showExtra1: true,
+    showExtra2: true,
+    showExtra3: true,
+    showExtra4: true,
+    showExtra5: true,
+    showExtra6: true,
+    showExtra7: true,
+    showExtra8: true,
+    showExtra9: true,
+    showExtra10: true,
     selectedModel: "chat_completion",
     textRewritePrompt: `[INST]Rewrite this section of text: """{{rewrite}}""" while keeping the same content, general style and length. Do not list alternatives and only print the result without prefix or suffix.[/INST]
 
@@ -57,7 +87,7 @@ Sure, here is only the rewritten text without any comments: `,
     showCustom: true, 
     showDelete: true,
     applyRegexOnRewrite: true, // New setting to control regex application
-    optionOrder: ['rewrite', 'shorten', 'expand', 'custom'],
+    optionOrder: ['rewrite', 'shorten', 'expand', 'custom', 'extra1', 'extra2', 'extra3', 'extra4', 'extra5', 'extra6', 'extra7', 'extra8', 'extra9', 'extra10'],
 };
 
 let rewriteMenu = null;
@@ -99,6 +129,36 @@ function loadSettings() {
     $("#shorten_label").val(getSetting('shortenLabel', defaultSettings.shortenLabel));
     $("#expand_label").val(getSetting('expandLabel', defaultSettings.expandLabel));
     $("#custom_label").val(getSetting('customLabel', defaultSettings.customLabel));
+    $("#extra10_label").val(getSetting('extra10Label', defaultSettings.extra10Label));
+    $("#text_extra10_prompt").val(getSetting('textExtra10Prompt', defaultSettings.textExtra10Prompt));
+    $("#show_extra10").prop('checked', getSetting('showExtra10', defaultSettings.showExtra10));
+    $("#extra9_label").val(getSetting('extra9Label', defaultSettings.extra9Label));
+    $("#text_extra9_prompt").val(getSetting('textExtra9Prompt', defaultSettings.textExtra9Prompt));
+    $("#show_extra9").prop('checked', getSetting('showExtra9', defaultSettings.showExtra9));
+    $("#extra8_label").val(getSetting('extra8Label', defaultSettings.extra8Label));
+    $("#text_extra8_prompt").val(getSetting('textExtra8Prompt', defaultSettings.textExtra8Prompt));
+    $("#show_extra8").prop('checked', getSetting('showExtra8', defaultSettings.showExtra8));
+    $("#extra7_label").val(getSetting('extra7Label', defaultSettings.extra7Label));
+    $("#text_extra7_prompt").val(getSetting('textExtra7Prompt', defaultSettings.textExtra7Prompt));
+    $("#show_extra7").prop('checked', getSetting('showExtra7', defaultSettings.showExtra7));
+    $("#extra6_label").val(getSetting('extra6Label', defaultSettings.extra6Label));
+    $("#text_extra6_prompt").val(getSetting('textExtra6Prompt', defaultSettings.textExtra6Prompt));
+    $("#show_extra6").prop('checked', getSetting('showExtra6', defaultSettings.showExtra6));
+    $("#extra5_label").val(getSetting('extra5Label', defaultSettings.extra5Label));
+    $("#text_extra5_prompt").val(getSetting('textExtra5Prompt', defaultSettings.textExtra5Prompt));
+    $("#show_extra5").prop('checked', getSetting('showExtra5', defaultSettings.showExtra5));
+    $("#extra4_label").val(getSetting('extra4Label', defaultSettings.extra4Label));
+    $("#text_extra4_prompt").val(getSetting('textExtra4Prompt', defaultSettings.textExtra4Prompt));
+    $("#show_extra4").prop('checked', getSetting('showExtra4', defaultSettings.showExtra4));
+    $("#extra3_label").val(getSetting('extra3Label', defaultSettings.extra3Label));
+    $("#text_extra3_prompt").val(getSetting('textExtra3Prompt', defaultSettings.textExtra3Prompt));
+    $("#show_extra3").prop('checked', getSetting('showExtra3', defaultSettings.showExtra3));
+    $("#extra2_label").val(getSetting('extra2Label', defaultSettings.extra2Label));
+    $("#text_extra2_prompt").val(getSetting('textExtra2Prompt', defaultSettings.textExtra2Prompt));
+    $("#show_extra2").prop('checked', getSetting('showExtra2', defaultSettings.showExtra2));
+    $("#extra1_label").val(getSetting('extra1Label', defaultSettings.extra1Label));
+    $("#text_extra1_prompt").val(getSetting('textExtra1Prompt', defaultSettings.textExtra1Prompt));
+    $("#show_extra1").prop('checked', getSetting('showExtra1', defaultSettings.showExtra1));
     $("#show_delete").prop('checked', getSetting('showDelete', defaultSettings.showDelete));
     $("#apply_regex_on_rewrite").prop('checked', getSetting('applyRegexOnRewrite', defaultSettings.applyRegexOnRewrite)); // Load new setting
 
@@ -131,6 +191,36 @@ function saveSettings() {
         shortenLabel: $("#shorten_label").val(),
         expandLabel: $("#expand_label").val(),
         customLabel: $("#custom_label").val(),
+        extra10Label: $("#extra10_label").val(),
+        textExtra10Prompt: $("#text_extra10_prompt").val(),
+        showExtra10: $("#show_extra10").is(':checked'),
+        extra9Label: $("#extra9_label").val(),
+        textExtra9Prompt: $("#text_extra9_prompt").val(),
+        showExtra9: $("#show_extra9").is(':checked'),
+        extra8Label: $("#extra8_label").val(),
+        textExtra8Prompt: $("#text_extra8_prompt").val(),
+        showExtra8: $("#show_extra8").is(':checked'),
+        extra7Label: $("#extra7_label").val(),
+        textExtra7Prompt: $("#text_extra7_prompt").val(),
+        showExtra7: $("#show_extra7").is(':checked'),
+        extra6Label: $("#extra6_label").val(),
+        textExtra6Prompt: $("#text_extra6_prompt").val(),
+        showExtra6: $("#show_extra6").is(':checked'),
+        extra5Label: $("#extra5_label").val(),
+        textExtra5Prompt: $("#text_extra5_prompt").val(),
+        showExtra5: $("#show_extra5").is(':checked'),
+        extra4Label: $("#extra4_label").val(),
+        textExtra4Prompt: $("#text_extra4_prompt").val(),
+        showExtra4: $("#show_extra4").is(':checked'),
+        extra3Label: $("#extra3_label").val(),
+        textExtra3Prompt: $("#text_extra3_prompt").val(),
+        showExtra3: $("#show_extra3").is(':checked'),
+        extra2Label: $("#extra2_label").val(),
+        textExtra2Prompt: $("#text_extra2_prompt").val(),
+        showExtra2: $("#show_extra2").is(':checked'),
+        extra1Label: $("#extra1_label").val(),
+        textExtra1Prompt: $("#text_extra1_prompt").val(),
+        showExtra1: $("#show_extra1").is(':checked'),
         showDelete: $("#show_delete").is(':checked'),
         applyRegexOnRewrite: $("#apply_regex_on_rewrite").is(':checked'), // Save new setting
         optionOrder: getOptionOrderFromSettingsWidgets(),
@@ -234,6 +324,16 @@ function getOrderedContextMenuOptions() {
         shorten: { key: 'shorten', name: extension_settings[extensionName].shortenLabel || defaultSettings.shortenLabel, show: extension_settings[extensionName].showShorten },
         expand: { key: 'expand', name: extension_settings[extensionName].expandLabel || defaultSettings.expandLabel, show: extension_settings[extensionName].showExpand },
         custom: { key: 'custom', name: extension_settings[extensionName].customLabel || defaultSettings.customLabel, show: extension_settings[extensionName].showCustom },
+        extra1: { key: 'extra1', name: extension_settings[extensionName].extra1Label || defaultSettings.extra1Label, show: extension_settings[extensionName].showExtra1 },
+        extra2: { key: 'extra2', name: extension_settings[extensionName].extra2Label || defaultSettings.extra2Label, show: extension_settings[extensionName].showExtra2 },
+        extra3: { key: 'extra3', name: extension_settings[extensionName].extra3Label || defaultSettings.extra3Label, show: extension_settings[extensionName].showExtra3 },
+        extra4: { key: 'extra4', name: extension_settings[extensionName].extra4Label || defaultSettings.extra4Label, show: extension_settings[extensionName].showExtra4 },
+        extra5: { key: 'extra5', name: extension_settings[extensionName].extra5Label || defaultSettings.extra5Label, show: extension_settings[extensionName].showExtra5 },
+        extra6: { key: 'extra6', name: extension_settings[extensionName].extra6Label || defaultSettings.extra6Label, show: extension_settings[extensionName].showExtra6 },
+        extra7: { key: 'extra7', name: extension_settings[extensionName].extra7Label || defaultSettings.extra7Label, show: extension_settings[extensionName].showExtra7 },
+        extra8: { key: 'extra8', name: extension_settings[extensionName].extra8Label || defaultSettings.extra8Label, show: extension_settings[extensionName].showExtra8 },
+        extra9: { key: 'extra9', name: extension_settings[extensionName].extra9Label || defaultSettings.extra9Label, show: extension_settings[extensionName].showExtra9 },
+        extra10: { key: 'extra10', name: extension_settings[extensionName].extra10Label || defaultSettings.extra10Label, show: extension_settings[extensionName].showExtra10 },
     };
 
     const orderedKeys = extension_settings[extensionName].optionOrder || defaultSettings.optionOrder;
@@ -257,9 +357,9 @@ jQuery(async () => {
     // Add event listeners
     $(".rewrite-extension-settings select").on("change", saveSettings);
     $("#use_streaming").on("change", saveSettings);
-    $("#text_rewrite_prompt, #text_shorten_prompt, #text_expand_prompt, #text_custom_prompt, #rewrite_label, #shorten_label, #expand_label, #custom_label, #remove_prefix, #remove_suffix").on("input change", saveSettings);
+    $("#text_rewrite_prompt, #text_shorten_prompt, #text_expand_prompt, #text_custom_prompt, #text_extra1_prompt, #text_extra2_prompt, #text_extra3_prompt, #text_extra4_prompt, #text_extra5_prompt, #text_extra6_prompt, #text_extra7_prompt, #text_extra8_prompt, #text_extra9_prompt, #text_extra10_prompt, #extra1_label, #extra2_label, #extra3_label, #extra4_label, #extra5_label, #extra6_label, #extra7_label, #extra8_label, #extra9_label, #extra10_label, #rewrite_label, #shorten_label, #expand_label, #custom_label, #remove_prefix, #remove_suffix").on("input change", saveSettings);
     $("#override_max_tokens").on("change", saveSettings);
-    $("#show_rewrite, #show_shorten, #show_expand, #show_custom, #show_delete").on("change", saveSettings); // Added #show_custom
+    $("#show_rewrite, #show_shorten, #show_expand, #show_custom, #show_extra1, #show_extra2, #show_extra3, #show_extra4, #show_extra5, #show_extra6, #show_extra7, #show_extra8, #show_extra9, #show_extra10, #show_delete").on("change", saveSettings); // Added #show_custom
     $("#apply_regex_on_rewrite").on("change", saveSettings); // Add listener for new checkbox
 
     $("#rewrite_extension_model_select").on("change", () => {
@@ -948,6 +1048,18 @@ async function handleChatCompletionRewrite(mesId, swipeId, option, customInstruc
         case 'custom':
             selectedPreset = extension_settings[extensionName].customPreset;
             break;
+        case 'extra1':
+        case 'extra2':
+        case 'extra3':
+        case 'extra4':
+        case 'extra5':
+        case 'extra6':
+        case 'extra7':
+        case 'extra8':
+        case 'extra9':
+        case 'extra10':
+            selectedPreset = extension_settings[extensionName].customPreset;
+            break;
         default:
             console.error("Unknown rewrite option:", option);
             return; // Exit if the option is not recognized
@@ -1111,28 +1223,36 @@ async function handleChatCompletionRewrite(mesId, swipeId, option, customInstruc
 }
 
 
+
+function getPromptTemplateForOption(option) {
+    switch (option) {
+        case 'rewrite': return extension_settings[extensionName].textRewritePrompt;
+        case 'shorten': return extension_settings[extensionName].textShortenPrompt;
+        case 'expand': return extension_settings[extensionName].textExpandPrompt;
+        case 'custom': return extension_settings[extensionName].textCustomPrompt;
+        case 'extra1': return extension_settings[extensionName].textExtra1Prompt;
+        case 'extra2': return extension_settings[extensionName].textExtra2Prompt;
+        case 'extra3': return extension_settings[extensionName].textExtra3Prompt;
+        case 'extra4': return extension_settings[extensionName].textExtra4Prompt;
+        case 'extra5': return extension_settings[extensionName].textExtra5Prompt;
+        case 'extra6': return extension_settings[extensionName].textExtra6Prompt;
+        case 'extra7': return extension_settings[extensionName].textExtra7Prompt;
+        case 'extra8': return extension_settings[extensionName].textExtra8Prompt;
+        case 'extra9': return extension_settings[extensionName].textExtra9Prompt;
+        case 'extra10': return extension_settings[extensionName].textExtra10Prompt;
+        default: return null;
+    }
+}
+
 // Updated signature to accept selectionInfo
 async function handleSimplifiedChatCompletionRewrite(mesId, swipeId, option, customInstructions, selectionInfo, onProgress = null) {
     // Use pre-captured selection info
     const { fullMessage, selectedRawText } = selectionInfo;
     // Get the text completion prompt based on the option
-    let promptTemplate;
-    switch (option) {
-        case 'rewrite':
-            promptTemplate = extension_settings[extensionName].textRewritePrompt;
-            break;
-        case 'shorten':
-            promptTemplate = extension_settings[extensionName].textShortenPrompt;
-            break;
-        case 'expand':
-            promptTemplate = extension_settings[extensionName].textExpandPrompt;
-            break;
-        case 'custom':
-            promptTemplate = extension_settings[extensionName].textCustomPrompt;
-            break;
-        default:
-            console.error("Unknown rewrite option:", option);
-            return; // Exit if the option is not recognized
+    const promptTemplate = getPromptTemplateForOption(option);
+    if (!promptTemplate) {
+        console.error("Unknown rewrite option:", option);
+        return;
     }
 
     // Get amount of words
@@ -1201,25 +1321,11 @@ async function handleTextBasedRewrite(mesId, swipeId, option, customInstructions
     const { fullMessage, selectedRawText } = selectionInfo;
     // Get the selected model and option-specific prompt
     const selectedModel = extension_settings[extensionName].selectedModel;
-    let promptTemplate;
-    switch (option) {
-        case 'rewrite':
-            promptTemplate = extension_settings[extensionName].textRewritePrompt;
-            break;
-        case 'shorten':
-            promptTemplate = extension_settings[extensionName].textShortenPrompt;
-            break;
-        case 'expand':
-            promptTemplate = extension_settings[extensionName].textExpandPrompt;
-            break;
-        case 'custom':
-            promptTemplate = extension_settings[extensionName].textCustomPrompt;
-            break;
-        default:
-            console.error('Unknown rewrite option:', option);
-            return;
+    const promptTemplate = getPromptTemplateForOption(option);
+    if (!promptTemplate) {
+        console.error('Unknown rewrite option:', option);
+        return;
     }
-
     // Get amount of words
     const wordCount = extractAllWords(selectedRawText).length;
 
