@@ -1451,6 +1451,20 @@ async function saveRewrittenText(mesId, swipeId, fullMessage, startOffset, endOf
         context.chat[mesId].swipes[swipeId] = newMessage;
     }
 
+    // Update the currently visible message immediately
+    const messageDiv = document.querySelector(`[mesid="${mesId}"]`);
+    const mesTextElement = messageDiv?.querySelector('.mes_text');
+    if (mesTextElement) {
+        mesTextElement.innerHTML = messageFormatting(
+            newMessage,
+            context.name2,
+            context.chat[mesId].isSystem,
+            context.chat[mesId].isUser,
+            mesId,
+        );
+        addCopyToCodeBlocks(mesTextElement);
+    }
+
     // Save and reload the chat
     await context.saveChat();
 }
