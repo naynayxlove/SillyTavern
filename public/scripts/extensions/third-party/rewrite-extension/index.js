@@ -196,7 +196,8 @@ jQuery(async () => {
     await populateDropdowns();
 
     // Add event listeners
-    $(".rewrite-extension-settings select, #text_rewrite_prompt, #text_shorten_prompt, #text_expand_prompt, #text_custom_prompt, #rewrite_label, #shorten_label, #expand_label, #custom_label, #delete_label").on("change", saveSettings);
+    $(".rewrite-extension-settings select, #text_rewrite_prompt, #text_shorten_prompt, #text_expand_prompt, #text_custom_prompt").on("change", saveSettings);
+    $("#rewrite_label, #shorten_label, #expand_label, #custom_label, #delete_label").on("input change", saveSettings);
     $("#use_streaming").on("change", saveSettings);
     $("#override_max_tokens").on("change", saveSettings);
     $("#show_rewrite, #show_shorten, #show_expand, #show_custom, #show_delete").on("change", saveSettings); // Added #show_custom
