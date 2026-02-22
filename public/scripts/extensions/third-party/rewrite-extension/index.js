@@ -128,7 +128,7 @@ function loadSettings() {
     $("#rewrite_label").val(getSetting('rewriteLabel', defaultSettings.rewriteLabel));
     $("#shorten_label").val(getSetting('shortenLabel', defaultSettings.shortenLabel));
     $("#expand_label").val(getSetting('expandLabel', defaultSettings.expandLabel));
-    $("#custom_label").val(defaultSettings.customLabel).prop('readonly', true);
+    $("#custom_label").val(getSetting('customLabel', defaultSettings.customLabel));
     $("#extra10_label").val(getSetting('extra10Label', defaultSettings.extra10Label));
     $("#text_extra10_prompt").val(getSetting('textExtra10Prompt', defaultSettings.textExtra10Prompt));
     $("#show_extra10").prop('checked', getSetting('showExtra10', defaultSettings.showExtra10));
@@ -190,7 +190,7 @@ function saveSettings() {
         rewriteLabel: $("#rewrite_label").val(),
         shortenLabel: $("#shorten_label").val(),
         expandLabel: $("#expand_label").val(),
-        customLabel: defaultSettings.customLabel,
+        customLabel: $("#custom_label").val().trim() || defaultSettings.customLabel,
         extra10Label: $("#extra10_label").val(),
         textExtra10Prompt: $("#text_extra10_prompt").val(),
         showExtra10: $("#show_extra10").is(':checked'),
@@ -376,7 +376,7 @@ jQuery(async () => {
     // Add event listeners
     $(".rewrite-extension-settings select").on("change", saveSettings);
     $("#use_streaming").on("change", saveSettings);
-    $("#text_rewrite_prompt, #text_shorten_prompt, #text_expand_prompt, #text_custom_prompt, #text_extra1_prompt, #text_extra2_prompt, #text_extra3_prompt, #text_extra4_prompt, #text_extra5_prompt, #text_extra6_prompt, #text_extra7_prompt, #text_extra8_prompt, #text_extra9_prompt, #text_extra10_prompt, #extra1_label, #extra2_label, #extra3_label, #extra4_label, #extra5_label, #extra6_label, #extra7_label, #extra8_label, #extra9_label, #extra10_label, #rewrite_label, #shorten_label, #expand_label, #remove_prefix, #remove_suffix").on("input change", saveSettings);
+    $("#text_rewrite_prompt, #text_shorten_prompt, #text_expand_prompt, #text_custom_prompt, #text_extra1_prompt, #text_extra2_prompt, #text_extra3_prompt, #text_extra4_prompt, #text_extra5_prompt, #text_extra6_prompt, #text_extra7_prompt, #text_extra8_prompt, #text_extra9_prompt, #text_extra10_prompt, #extra1_label, #extra2_label, #extra3_label, #extra4_label, #extra5_label, #extra6_label, #extra7_label, #extra8_label, #extra9_label, #extra10_label, #rewrite_label, #shorten_label, #expand_label, #custom_label, #remove_prefix, #remove_suffix").on("input change", saveSettings);
     $("#override_max_tokens").on("change", saveSettings);
     $("#show_rewrite, #show_shorten, #show_expand, #show_custom, #show_extra1, #show_extra2, #show_extra3, #show_extra4, #show_extra5, #show_extra6, #show_extra7, #show_extra8, #show_extra9, #show_extra10, #show_delete").on("change", saveSettings); // Added #show_custom
     $("#apply_regex_on_rewrite").on("change", saveSettings); // Add listener for new checkbox
