@@ -30,7 +30,6 @@ const defaultSettings = {
     shortenPreset: "",
     expandPreset: "",
     customPreset: "", 
-    highlightDuration: 3000,
     selectedModel: "chat_completion",
     textRewritePrompt: `[INST]Rewrite this section of text: """{{rewrite}}""" while keeping the same content, general style and length. Do not list alternatives and only print the result without prefix or suffix.[/INST]
 
@@ -45,28 +44,17 @@ Sure, here is only the rewritten text without any comments: `,
 
 Sure, here is only the rewritten text without any comments: `, 
     useStreaming: true,
-    useDynamicTokens: true,
-    dynamicTokenMode: 'multiplicative',
-    rewriteTokens: 100,
-    shortenTokens: 50,
-    expandTokens: 150,
-    customTokens: 100, 
-    rewriteTokensAdd: 0,
-    shortenTokensAdd: -50,
-    expandTokensAdd: 50,
-    customTokensAdd: 0, 
-    rewriteTokensMult: 1.05,
-    shortenTokensMult: 0.8,
-    expandTokensMult: 1.5,
-    customTokensMult: 1.0, 
-    removePrefix: `"`,
-    removeSuffix: `"`,
     overrideMaxTokens: true,
     showRewrite: true,
     showShorten: true,
     showExpand: true,
     showCustom: true, 
     showDelete: true,
+    rewriteLabel: 'Rewrite',
+    shortenLabel: 'Shorten',
+    expandLabel: 'Expand',
+    customLabel: 'Custom',
+    deleteLabel: 'Delete',
     applyRegexOnRewrite: true, // New setting to control regex application
 };
 
@@ -93,35 +81,23 @@ function loadSettings() {
     $("#shorten_preset").val(getSetting('shortenPreset', defaultSettings.shortenPreset));
     $("#expand_preset").val(getSetting('expandPreset', defaultSettings.expandPreset));
     $("#custom_preset").val(getSetting('customPreset', defaultSettings.customPreset)); 
-    $("#highlight_duration").val(getSetting('highlightDuration', defaultSettings.highlightDuration));
     $("#rewrite_extension_model_select").val(getSetting('selectedModel', defaultSettings.selectedModel));
     $("#text_rewrite_prompt").val(getSetting('textRewritePrompt', defaultSettings.textRewritePrompt));
     $("#text_shorten_prompt").val(getSetting('textShortenPrompt', defaultSettings.textShortenPrompt));
     $("#text_expand_prompt").val(getSetting('textExpandPrompt', defaultSettings.textExpandPrompt));
     $("#text_custom_prompt").val(getSetting('textCustomPrompt', defaultSettings.textCustomPrompt)); 
     $("#use_streaming").prop('checked', getSetting('useStreaming', defaultSettings.useStreaming));
-    $("#use_dynamic_tokens").prop('checked', getSetting('useDynamicTokens', defaultSettings.useDynamicTokens));
-    $("#dynamic_token_mode").val(getSetting('dynamicTokenMode', defaultSettings.dynamicTokenMode));
-    $("#rewrite_tokens").val(getSetting('rewriteTokens', defaultSettings.rewriteTokens));
-    $("#shorten_tokens").val(getSetting('shortenTokens', defaultSettings.shortenTokens));
-    $("#expand_tokens").val(getSetting('expandTokens', defaultSettings.expandTokens));
-    $("#custom_tokens").val(getSetting('customTokens', defaultSettings.customTokens)); 
-    $("#rewrite_tokens_add").val(getSetting('rewriteTokensAdd', defaultSettings.rewriteTokensAdd));
-    $("#shorten_tokens_add").val(getSetting('shortenTokensAdd', defaultSettings.shortenTokensAdd));
-    $("#expand_tokens_add").val(getSetting('expandTokensAdd', defaultSettings.expandTokensAdd));
-    $("#custom_tokens_add").val(getSetting('customTokensAdd', defaultSettings.customTokensAdd)); 
-    $("#rewrite_tokens_mult").val(getSetting('rewriteTokensMult', defaultSettings.rewriteTokensMult));
-    $("#shorten_tokens_mult").val(getSetting('shortenTokensMult', defaultSettings.shortenTokensMult));
-    $("#expand_tokens_mult").val(getSetting('expandTokensMult', defaultSettings.expandTokensMult));
-    $("#custom_tokens_mult").val(getSetting('customTokensMult', defaultSettings.customTokensMult)); 
-    $("#remove_prefix").val(getSetting('removePrefix', defaultSettings.removePrefix));
-    $("#remove_suffix").val(getSetting('removeSuffix', defaultSettings.removeSuffix));
     $("#override_max_tokens").prop('checked', getSetting('overrideMaxTokens', defaultSettings.overrideMaxTokens));
     $("#show_rewrite").prop('checked', getSetting('showRewrite', defaultSettings.showRewrite));
     $("#show_shorten").prop('checked', getSetting('showShorten', defaultSettings.showShorten));
     $("#show_expand").prop('checked', getSetting('showExpand', defaultSettings.showExpand));
     $("#show_custom").prop('checked', getSetting('showCustom', defaultSettings.showCustom)); 
     $("#show_delete").prop('checked', getSetting('showDelete', defaultSettings.showDelete));
+    $("#rewrite_label").val(getSetting('rewriteLabel', defaultSettings.rewriteLabel));
+    $("#shorten_label").val(getSetting('shortenLabel', defaultSettings.shortenLabel));
+    $("#expand_label").val(getSetting('expandLabel', defaultSettings.expandLabel));
+    $("#custom_label").val(getSetting('customLabel', defaultSettings.customLabel));
+    $("#delete_label").val(getSetting('deleteLabel', defaultSettings.deleteLabel));
     $("#apply_regex_on_rewrite").prop('checked', getSetting('applyRegexOnRewrite', defaultSettings.applyRegexOnRewrite)); // Load new setting
 
     // Update the UI based on loaded settings
@@ -135,35 +111,23 @@ function saveSettings() {
         shortenPreset: $("#shorten_preset").val(),
         expandPreset: $("#expand_preset").val(),
         customPreset: $("#custom_preset").val(), 
-        highlightDuration: parseInt($("#highlight_duration").val()),
         selectedModel: $("#rewrite_extension_model_select").val(),
         textRewritePrompt: $("#text_rewrite_prompt").val(),
         textShortenPrompt: $("#text_shorten_prompt").val(),
         textExpandPrompt: $("#text_expand_prompt").val(),
         textCustomPrompt: $("#text_custom_prompt").val(), 
         useStreaming: $("#use_streaming").is(':checked'),
-        useDynamicTokens: $("#use_dynamic_tokens").is(':checked'),
-        dynamicTokenMode: $("#dynamic_token_mode").val(),
-        rewriteTokens: parseInt($("#rewrite_tokens").val()),
-        shortenTokens: parseInt($("#shorten_tokens").val()),
-        expandTokens: parseInt($("#expand_tokens").val()),
-        customTokens: parseInt($("#custom_tokens").val()), 
-        rewriteTokensAdd: parseInt($("#rewrite_tokens_add").val()),
-        shortenTokensAdd: parseInt($("#shorten_tokens_add").val()),
-        expandTokensAdd: parseInt($("#expand_tokens_add").val()),
-        customTokensAdd: parseInt($("#custom_tokens_add").val()), 
-        rewriteTokensMult: parseFloat($("#rewrite_tokens_mult").val()),
-        shortenTokensMult: parseFloat($("#shorten_tokens_mult").val()),
-        expandTokensMult: parseFloat($("#expand_tokens_mult").val()),
-        customTokensMult: parseFloat($("#custom_tokens_mult").val()), 
-        removePrefix: $("#remove_prefix").val(),
-        removeSuffix: $("#remove_suffix").val(),
         overrideMaxTokens: $("#override_max_tokens").is(':checked'),
         showRewrite: $("#show_rewrite").is(':checked'),
         showShorten: $("#show_shorten").is(':checked'),
         showExpand: $("#show_expand").is(':checked'),
         showCustom: $("#show_custom").is(':checked'), 
         showDelete: $("#show_delete").is(':checked'),
+        rewriteLabel: $("#rewrite_label").val().trim() || defaultSettings.rewriteLabel,
+        shortenLabel: $("#shorten_label").val().trim() || defaultSettings.shortenLabel,
+        expandLabel: $("#expand_label").val().trim() || defaultSettings.expandLabel,
+        customLabel: $("#custom_label").val().trim() || defaultSettings.customLabel,
+        deleteLabel: $("#delete_label").val().trim() || defaultSettings.deleteLabel,
         applyRegexOnRewrite: $("#apply_regex_on_rewrite").is(':checked'), // Save new setting
     };
 
@@ -220,12 +184,7 @@ function updateModelSettings() {
 }
 
 function updateTokenSettings() {
-    const useDynamicTokens = $("#use_dynamic_tokens").is(':checked');
-    const dynamicTokenMode = $("#dynamic_token_mode").val();
-    $("#static_token_settings").toggle(!useDynamicTokens);
-    $("#dynamic_token_settings").toggle(useDynamicTokens);
-    $("#additive_settings").toggle(dynamicTokenMode === 'additive');
-    $("#multiplicative_settings").toggle(dynamicTokenMode === 'multiplicative');
+    // Dynamic token mode is intentionally fixed to multiplicative x5.
 }
 
 // Initialize
@@ -237,14 +196,8 @@ jQuery(async () => {
     await populateDropdowns();
 
     // Add event listeners
-    $(".rewrite-extension-settings select, #highlight_duration, #text_rewrite_prompt, #text_shorten_prompt, #text_expand_prompt, #text_custom_prompt").on("change", saveSettings); // Added #text_custom_prompt
+    $(".rewrite-extension-settings select, #text_rewrite_prompt, #text_shorten_prompt, #text_expand_prompt, #text_custom_prompt, #rewrite_label, #shorten_label, #expand_label, #custom_label, #delete_label").on("change", saveSettings);
     $("#use_streaming").on("change", saveSettings);
-    $("#use_dynamic_tokens, #dynamic_token_mode").on("change", () => {
-        updateTokenSettings();
-        saveSettings();
-    });
-    $("#rewrite_tokens, #shorten_tokens, #expand_tokens, #custom_tokens, #rewrite_tokens_add, #shorten_tokens_add, #expand_tokens_add, #custom_tokens_add, #rewrite_tokens_mult, #shorten_tokens_mult, #expand_tokens_mult, #custom_tokens_mult").on("input", saveSettings); // Added custom token inputs
-    $("#remove_prefix, #remove_suffix").on("change", saveSettings);
     $("#override_max_tokens").on("change", saveSettings);
     $("#show_rewrite, #show_shorten, #show_expand, #show_custom, #show_delete").on("change", saveSettings); // Added #show_custom
     $("#apply_regex_on_rewrite").on("change", saveSettings); // Add listener for new checkbox
@@ -293,7 +246,6 @@ function initRewriteMenu() {
 
 function handleStopRewrite() {
     if (abortController) {
-        const { mesDiv, mesId, swipeId, highlightDuration } = abortController.signal;
         abortController.abort();
 
         if (abortController.signal.prev_oai_settings) {
@@ -302,9 +254,6 @@ function handleStopRewrite() {
 
         getContext().activateSendButtons();
 
-        if (mesDiv && mesId !== undefined && highlightDuration !== undefined) {
-            setTimeout(() => removeHighlight(mesDiv, mesId, swipeId), highlightDuration);
-        }
     }
 }
 
@@ -368,11 +317,35 @@ async function getCustomInstructionsFromPopup() {
     }
 }
 
+function normalizeOptionKey(option) {
+    const key = (option || '').toString().toLowerCase();
+    const legacyMap = {
+        rewrite: 'rewrite',
+        shorten: 'shorten',
+        expand: 'expand',
+        custom: 'custom',
+        delete: 'delete',
+    };
+    return legacyMap[key] || option;
+}
+
+function getOptionLabel(optionKey) {
+    const labels = {
+        rewrite: extension_settings[extensionName].rewriteLabel,
+        shorten: extension_settings[extensionName].shortenLabel,
+        expand: extension_settings[extensionName].expandLabel,
+        custom: extension_settings[extensionName].customLabel,
+        delete: extension_settings[extensionName].deleteLabel,
+    };
+
+    return labels[optionKey] || optionKey;
+}
+
 async function handleMenuItemClick(e) {
     e.preventDefault();
     e.stopPropagation();
 
-    const option = e.target.dataset.option;
+    const option = normalizeOptionKey(e.target.dataset.option);
     const selection = window.getSelection();
 
     // Ensure there's a selection and a range
@@ -393,10 +366,10 @@ async function handleMenuItemClick(e) {
                 const mesId = messageDiv.getAttribute('mesid');
                 const swipeId = messageDiv.getAttribute('swipeid');
 
-                if (option === 'Delete') {
+                if (option === 'delete') {
                     // Pass the initially captured range to handleDeleteSelection
                     await handleDeleteSelection(mesId, swipeId, initialRange);
-                } else if (option === 'Custom') {
+                } else if (option === 'custom') {
                     const customInstructions = await getCustomInstructionsFromPopup();
                     if (customInstructions !== null && customInstructions.trim() !== '') { // Proceed only if user entered text and didn't cancel
                         // Get selectionInfo *after* await and *before* handleRewrite
@@ -470,20 +443,21 @@ function createRewriteMenu() {
     rewriteMenu.style.position = 'fixed';
 
     const options = [
-        { name: 'Rewrite', show: extension_settings[extensionName].showRewrite },
-        { name: 'Shorten', show: extension_settings[extensionName].showShorten },
-        { name: 'Expand', show: extension_settings[extensionName].showExpand },
-        { name: 'Custom', show: extension_settings[extensionName].showCustom }, 
-        { name: 'Delete', show: extension_settings[extensionName].showDelete }
+        { key: 'rewrite', show: extension_settings[extensionName].showRewrite },
+        { key: 'shorten', show: extension_settings[extensionName].showShorten },
+        { key: 'expand', show: extension_settings[extensionName].showExpand },
+        { key: 'custom', show: extension_settings[extensionName].showCustom },
+        { key: 'delete', show: extension_settings[extensionName].showDelete },
     ];
+
     options.forEach(option => {
         if (option.show) {
             let li = document.createElement('li');
             li.className = 'list-group-item ctx-item';
-            li.textContent = option.name;
+            li.textContent = getOptionLabel(option.key);
             li.addEventListener('mousedown', handleMenuItemClick);
             li.addEventListener('touchstart', handleMenuItemClick);
-            li.dataset.option = option.name;
+            li.dataset.option = option.key;
             rewriteMenu.appendChild(li);
         }
     });
@@ -833,16 +807,16 @@ async function handleChatCompletionRewrite(mesId, swipeId, option, customInstruc
     // Get the selected preset based on the option
     let selectedPreset;
     switch (option) {
-        case 'Rewrite':
+        case 'rewrite':
             selectedPreset = extension_settings[extensionName].rewritePreset;
             break;
-        case 'Shorten':
+        case 'shorten':
             selectedPreset = extension_settings[extensionName].shortenPreset;
             break;
-        case 'Expand':
+        case 'expand':
             selectedPreset = extension_settings[extensionName].expandPreset;
             break;
-        case 'Custom': // New case
+        case 'custom': // New case
             selectedPreset = extension_settings[extensionName].customPreset;
             break;
         default:
@@ -900,7 +874,7 @@ async function handleChatCompletionRewrite(mesId, swipeId, option, customInstruc
     let chatToSend = promptData.chat; // Start with the generated chat array
 
     // Inject custom instructions if applicable
-    if (option === 'Custom' && customInstructions) {
+    if (option === 'custom' && customInstructions) {
         // Find the last user message to append to
         let targetMessageIndex = -1;
         for (let i = chatToSend.length - 1; i >= 0; i--) {
@@ -1017,16 +991,16 @@ async function handleSimplifiedChatCompletionRewrite(mesId, swipeId, option, cus
     // Get the text completion prompt based on the option
     let promptTemplate;
     switch (option) {
-        case 'Rewrite':
+        case 'rewrite':
             promptTemplate = extension_settings[extensionName].textRewritePrompt;
             break;
-        case 'Shorten':
+        case 'shorten':
             promptTemplate = extension_settings[extensionName].textShortenPrompt;
             break;
-        case 'Expand':
+        case 'expand':
             promptTemplate = extension_settings[extensionName].textExpandPrompt;
             break;
-        case 'Custom': // New case
+        case 'custom': // New case
             promptTemplate = extension_settings[extensionName].textCustomPrompt;
             break;
         default:
@@ -1046,7 +1020,7 @@ async function handleSimplifiedChatCompletionRewrite(mesId, swipeId, option, cus
         .replace(/{{rewritecount}}/gi, wordCount);
 
     // Inject custom instructions if applicable
-    if (option === 'Custom') {
+    if (option === 'custom') {
         if (prompt.includes('{{custom_instructions}}')) {
             prompt = prompt.replace(/{{custom_instructions}}/gi, customInstructions);
         } else {
@@ -1096,16 +1070,16 @@ async function handleTextBasedRewrite(mesId, swipeId, option, customInstructions
     const selectedModel = extension_settings[extensionName].selectedModel;
     let promptTemplate;
     switch (option) {
-        case 'Rewrite':
+        case 'rewrite':
             promptTemplate = extension_settings[extensionName].textRewritePrompt;
             break;
-        case 'Shorten':
+        case 'shorten':
             promptTemplate = extension_settings[extensionName].textShortenPrompt;
             break;
-        case 'Expand':
+        case 'expand':
             promptTemplate = extension_settings[extensionName].textExpandPrompt;
             break;
-        case 'Custom': // New case
+        case 'custom': // New case
             promptTemplate = extension_settings[extensionName].textCustomPrompt;
             break;
         default:
@@ -1125,7 +1099,7 @@ async function handleTextBasedRewrite(mesId, swipeId, option, customInstructions
         .replace(/{{rewritecount}}/gi, wordCount);
 
     // Inject custom instructions if applicable
-    if (option === 'Custom') {
+    if (option === 'custom') {
         if (prompt.includes('{{custom_instructions}}')) {
             prompt = prompt.replace(/{{custom_instructions}}/gi, customInstructions);
         } else {
@@ -1135,26 +1109,7 @@ async function handleTextBasedRewrite(mesId, swipeId, option, customInstructions
     }
 
     let generateData;
-    let amount_gen;
-
-    if (extension_settings[extensionName].useDynamicTokens) {
-        amount_gen = calculateTargetTokenCount(selectedRawText, option);
-    } else {
-        switch (option) {
-            case 'Rewrite':
-                amount_gen = extension_settings[extensionName].rewriteTokens;
-                break;
-            case 'Shorten':
-                amount_gen = extension_settings[extensionName].shortenTokens;
-                break;
-            case 'Expand':
-                amount_gen = extension_settings[extensionName].expandTokens;
-                break;
-            case 'Custom': // New case
-                amount_gen = extension_settings[extensionName].customTokens;
-                break;
-        }
-    }
+    const amount_gen = calculateTargetTokenCount(selectedRawText);
 
     // Prepare generation data based on the selected model
     switch (main_api) {
@@ -1166,7 +1121,7 @@ async function handleTextBasedRewrite(mesId, swipeId, option, customInstructions
             generateData = getTextGenGenerationData(prompt, amount_gen, false, false, null, 'quiet');
             break;
         case 'koboldhorde':
-            if (option === 'Custom') {
+            if (option === 'custom') {
                 // For Custom Horde, use the manually constructed prompt directly
                 // We need a basic structure for generateHorde, mimicking what getContext().generate would provide
                 generateData = {
@@ -1413,57 +1368,9 @@ function createRewritePreviewModal({ onRetry, onApply }) {
     return api;
 }
 
-function calculateTargetTokenCount(selectedText, option) {
+function calculateTargetTokenCount(selectedText) {
     const baseTokenCount = getTokenCount(selectedText);
-    const useDynamicTokens = extension_settings[extensionName].useDynamicTokens;
-    const dynamicTokenMode = extension_settings[extensionName].dynamicTokenMode;
-    let result;
-
-    if (useDynamicTokens) {
-        if (dynamicTokenMode === 'additive') {
-            let modifier;
-            switch (option) {
-                case 'Rewrite':
-                    modifier = extension_settings[extensionName].rewriteTokensAdd;
-                    break;
-                case 'Shorten':
-                    modifier = extension_settings[extensionName].shortenTokensAdd;
-                    break;
-                case 'Expand':
-                    modifier = extension_settings[extensionName].expandTokensAdd;
-                    break;
-            }
-            result = baseTokenCount + modifier;
-        } else { // multiplicative
-            let multiplier;
-            switch (option) {
-                case 'Rewrite':
-                    multiplier = extension_settings[extensionName].rewriteTokensMult;
-                    break;
-                case 'Shorten':
-                    multiplier = extension_settings[extensionName].shortenTokensMult;
-                    break;
-                case 'Expand':
-                    multiplier = extension_settings[extensionName].expandTokensMult;
-                    break;
-            }
-            result = baseTokenCount * multiplier;
-        }
-    } else {
-        switch (option) {
-            case 'Rewrite':
-                result = extension_settings[extensionName].rewriteTokens;
-                break;
-            case 'Shorten':
-                result = extension_settings[extensionName].shortenTokens;
-                break;
-            case 'Expand':
-                result = extension_settings[extensionName].expandTokens;
-                break;
-        }
-    }
-
-    return Math.max(1, Math.round(result)); // Ensure at least 1 token and round to nearest integer
+    return Math.max(1, Math.round(baseTokenCount * 5));
 }
 
 async function handleUndo(event) {
@@ -1513,20 +1420,6 @@ async function handleUndo(event) {
 
 async function saveRewrittenText(mesId, swipeId, fullMessage, startOffset, endOffset, newText) {
     const context = getContext();
-
-    // Get the prefix and suffix to remove from the settings
-    const removePrefix = extension_settings[extensionName].removePrefix || '';
-    const removeSuffix = extension_settings[extensionName].removeSuffix || '';
-
-    // Remove prefix if present
-    if (removePrefix && newText.startsWith(removePrefix)) {
-        newText = newText.slice(removePrefix.length);
-    }
-
-    // Remove suffix if present
-    if (removeSuffix && newText.endsWith(removeSuffix)) {
-        newText = newText.slice(0, -removeSuffix.length);
-    }
 
     // Apply AI Output regex scripts if setting is enabled
     let processedText = newText; // Default to original newText
