@@ -54,67 +54,65 @@
             </div>
 
             <div id="text_based_settings" class="model-specific-settings" style="display: none;">
-                <div class="rewrite-extension_block">
-                    <div class="flex-container alignitemscenter" style="gap: 8px; flex-wrap: nowrap;">
-                        <div class="checkbox-label-group" style="min-width: 120px;">
+                <div id="rewrite_option_widgets" class="rewrite-option-widgets">
+                    <div class="rewrite-extension_block rewrite-option-widget" data-option-key="rewrite" style="border: 1px solid var(--SmartThemeBorderColor); padding: 8px; margin-bottom: 10px;">
+                        <div class="flex-container alignitemscenter" style="gap: 8px; flex-wrap: nowrap;">
+                            <span class="drag-handle menu_button fa-solid fa-grip-vertical" title="Drag to reorder"></span>
                             <input type="checkbox" id="show_rewrite" class="checkbox" checked>
-                            <label for="show_rewrite">Visible</label>
+                            <label for="show_rewrite" style="white-space: nowrap;">☑︎</label>
+                            <div class="flex-container alignitemscenter" style="gap: 6px; flex: 1;">
+                                <label for="rewrite_label">Button Name:</label>
+                                <input type="text" id="rewrite_label" class="text_pole" placeholder="Rewrite" style="margin: 0;">
+                            </div>
                         </div>
-                        <div class="flex-container alignitemscenter" style="gap: 6px; flex: 1;">
-                            <label for="rewrite_label">Button Name:</label>
-                            <input type="text" id="rewrite_label" class="text_pole" placeholder="Rewrite" style="margin: 0;">
+                        <div style="margin-top: 6px;">
+                            <textarea id="text_rewrite_prompt" class="text_pole" rows="3" placeholder="Enter rewrite prompt"></textarea>
                         </div>
                     </div>
-                    <div style="margin-top: 6px;">
-                        <textarea id="text_rewrite_prompt" class="text_pole" rows="3" placeholder="Enter rewrite prompt"></textarea>
-                    </div>
-                </div>
 
-                <div class="rewrite-extension_block">
-                    <div class="flex-container alignitemscenter" style="gap: 8px; flex-wrap: nowrap;">
-                        <div class="checkbox-label-group" style="min-width: 120px;">
+                    <div class="rewrite-extension_block rewrite-option-widget" data-option-key="shorten" style="border: 1px solid var(--SmartThemeBorderColor); padding: 8px; margin-bottom: 10px;">
+                        <div class="flex-container alignitemscenter" style="gap: 8px; flex-wrap: nowrap;">
+                            <span class="drag-handle menu_button fa-solid fa-grip-vertical" title="Drag to reorder"></span>
                             <input type="checkbox" id="show_shorten" class="checkbox" checked>
-                            <label for="show_shorten">Visible</label>
+                            <label for="show_shorten" style="white-space: nowrap;">☑︎</label>
+                            <div class="flex-container alignitemscenter" style="gap: 6px; flex: 1;">
+                                <label for="shorten_label">Button Name:</label>
+                                <input type="text" id="shorten_label" class="text_pole" placeholder="Shorten" style="margin: 0;">
+                            </div>
                         </div>
-                        <div class="flex-container alignitemscenter" style="gap: 6px; flex: 1;">
-                            <label for="shorten_label">Button Name:</label>
-                            <input type="text" id="shorten_label" class="text_pole" placeholder="Shorten" style="margin: 0;">
+                        <div style="margin-top: 6px;">
+                            <textarea id="text_shorten_prompt" class="text_pole" rows="3" placeholder="Enter shorten prompt"></textarea>
                         </div>
                     </div>
-                    <div style="margin-top: 6px;">
-                        <textarea id="text_shorten_prompt" class="text_pole" rows="3" placeholder="Enter shorten prompt"></textarea>
-                    </div>
-                </div>
 
-                <div class="rewrite-extension_block">
-                    <div class="flex-container alignitemscenter" style="gap: 8px; flex-wrap: nowrap;">
-                        <div class="checkbox-label-group" style="min-width: 120px;">
+                    <div class="rewrite-extension_block rewrite-option-widget" data-option-key="expand" style="border: 1px solid var(--SmartThemeBorderColor); padding: 8px; margin-bottom: 10px;">
+                        <div class="flex-container alignitemscenter" style="gap: 8px; flex-wrap: nowrap;">
+                            <span class="drag-handle menu_button fa-solid fa-grip-vertical" title="Drag to reorder"></span>
                             <input type="checkbox" id="show_expand" class="checkbox" checked>
-                            <label for="show_expand">Visible</label>
+                            <label for="show_expand" style="white-space: nowrap;">☑︎</label>
+                            <div class="flex-container alignitemscenter" style="gap: 6px; flex: 1;">
+                                <label for="expand_label">Button Name:</label>
+                                <input type="text" id="expand_label" class="text_pole" placeholder="Expand" style="margin: 0;">
+                            </div>
                         </div>
-                        <div class="flex-container alignitemscenter" style="gap: 6px; flex: 1;">
-                            <label for="expand_label">Button Name:</label>
-                            <input type="text" id="expand_label" class="text_pole" placeholder="Expand" style="margin: 0;">
+                        <div style="margin-top: 6px;">
+                            <textarea id="text_expand_prompt" class="text_pole" rows="3" placeholder="Enter expand prompt"></textarea>
                         </div>
                     </div>
-                    <div style="margin-top: 6px;">
-                        <textarea id="text_expand_prompt" class="text_pole" rows="3" placeholder="Enter expand prompt"></textarea>
-                    </div>
-                </div>
 
-                <div class="rewrite-extension_block">
-                    <div class="flex-container alignitemscenter" style="gap: 8px; flex-wrap: nowrap;">
-                        <div class="checkbox-label-group" style="min-width: 120px;">
+                    <div class="rewrite-extension_block rewrite-option-widget" data-option-key="custom" style="border: 1px solid var(--SmartThemeBorderColor); padding: 8px; margin-bottom: 10px;">
+                        <div class="flex-container alignitemscenter" style="gap: 8px; flex-wrap: nowrap;">
+                            <span class="drag-handle menu_button fa-solid fa-grip-vertical" title="Drag to reorder"></span>
                             <input type="checkbox" id="show_custom" class="checkbox" checked>
-                            <label for="show_custom">Visible</label>
+                            <label for="show_custom" style="white-space: nowrap;">☑︎</label>
+                            <div class="flex-container alignitemscenter" style="gap: 6px; flex: 1;">
+                                <label for="custom_label">Button Name:</label>
+                                <input type="text" id="custom_label" class="text_pole" placeholder="Custom" style="margin: 0;">
+                            </div>
                         </div>
-                        <div class="flex-container alignitemscenter" style="gap: 6px; flex: 1;">
-                            <label for="custom_label">Button Name:</label>
-                            <input type="text" id="custom_label" class="text_pole" placeholder="Custom" style="margin: 0;">
+                        <div style="margin-top: 6px;">
+                            <textarea id="text_custom_prompt" class="text_pole" rows="3" placeholder="Enter custom prompt. Use {{custom_instructions}} macro."></textarea>
                         </div>
-                    </div>
-                    <div style="margin-top: 6px;">
-                        <textarea id="text_custom_prompt" class="text_pole" rows="3" placeholder="Enter custom prompt. Use {{custom_instructions}} macro."></textarea>
                     </div>
                 </div>
             </div>

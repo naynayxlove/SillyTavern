@@ -57,6 +57,7 @@ Sure, here is only the rewritten text without any comments: `,
     showCustom: true, 
     showDelete: true,
     applyRegexOnRewrite: true, // New setting to control regex application
+    optionOrder: ['rewrite', 'shorten', 'expand', 'custom'],
 };
 
 let rewriteMenu = null;
@@ -101,6 +102,8 @@ function loadSettings() {
     $("#show_delete").prop('checked', getSetting('showDelete', defaultSettings.showDelete));
     $("#apply_regex_on_rewrite").prop('checked', getSetting('applyRegexOnRewrite', defaultSettings.applyRegexOnRewrite)); // Load new setting
 
+    applyOptionOrderToSettingsWidgets(getSetting('optionOrder', defaultSettings.optionOrder));
+
     // Update the UI based on loaded settings
     updateModelSettings();
 }
@@ -130,6 +133,7 @@ function saveSettings() {
         customLabel: $("#custom_label").val(),
         showDelete: $("#show_delete").is(':checked'),
         applyRegexOnRewrite: $("#apply_regex_on_rewrite").is(':checked'), // Save new setting
+        optionOrder: getOptionOrderFromSettingsWidgets(),
     };
 
     // Ensure all settings have a value, using defaults if necessary
@@ -184,10 +188,68 @@ function updateModelSettings() {
     }
 }
 
+function getOptionOrderFromSettingsWidgets() {
+    const order = [];
+    $('#rewrite_option_widgets .rewrite-option-widget').each(function () {
+        const optionKey = $(this).data('optionKey');
+        if (optionKey) {
+            order.push(optionKey);
+        }
+    });
+
+    return order.length ? order : [...defaultSettings.optionOrder];
+}
+
+function applyOptionOrderToSettingsWidgets(optionOrder) {
+    const validOrder = Array.isArray(optionOrder) ? optionOrder : defaultSettings.optionOrder;
+    const container = $('#rewrite_option_widgets');
+
+    validOrder.forEach(key => {
+        const widget = container.children(`.rewrite-option-widget[data-option-key="${key}"]`);
+        if (widget.length) {
+            container.append(widget);
+        }
+    });
+}
+
+function initOptionOrderSorting() {
+    const container = $('#rewrite_option_widgets');
+    if (!container.length) {
+        return;
+    }
+
+    if (container.sortable('instance') !== undefined) {
+        container.sortable('destroy');
+    }
+
+    container.sortable({
+        handle: '.drag-handle',
+        update: () => saveSettings(),
+    });
+}
+
+function getOrderedContextMenuOptions() {
+    const optionLookup = {
+        rewrite: { key: 'rewrite', name: extension_settings[extensionName].rewriteLabel || defaultSettings.rewriteLabel, show: extension_settings[extensionName].showRewrite },
+        shorten: { key: 'shorten', name: extension_settings[extensionName].shortenLabel || defaultSettings.shortenLabel, show: extension_settings[extensionName].showShorten },
+        expand: { key: 'expand', name: extension_settings[extensionName].expandLabel || defaultSettings.expandLabel, show: extension_settings[extensionName].showExpand },
+        custom: { key: 'custom', name: extension_settings[extensionName].customLabel || defaultSettings.customLabel, show: extension_settings[extensionName].showCustom },
+    };
+
+    const orderedKeys = extension_settings[extensionName].optionOrder || defaultSettings.optionOrder;
+    const orderedOptions = orderedKeys
+        .map(key => optionLookup[key])
+        .filter(Boolean);
+
+    return [...orderedOptions, { key: 'delete', name: 'Delete', show: extension_settings[extensionName].showDelete }];
+}
+
 // Initialize
 jQuery(async () => {
     const settingsHtml = await $.get(`${extensionFolderPath}/rewrite_settings.html`);
     $("#extensions_settings2").append(settingsHtml);
+
+    initOptionOrderSorting();
 
     // Populate dropdowns
     await populateDropdowns();
@@ -418,13 +480,7 @@ function createRewriteMenu() {
     rewriteMenu.style.zIndex = '1000';
     rewriteMenu.style.position = 'fixed';
 
-    const options = [
-        { key: 'rewrite', name: extension_settings[extensionName].rewriteLabel || defaultSettings.rewriteLabel, show: extension_settings[extensionName].showRewrite },
-        { key: 'shorten', name: extension_settings[extensionName].shortenLabel || defaultSettings.shortenLabel, show: extension_settings[extensionName].showShorten },
-        { key: 'expand', name: extension_settings[extensionName].expandLabel || defaultSettings.expandLabel, show: extension_settings[extensionName].showExpand },
-        { key: 'custom', name: extension_settings[extensionName].customLabel || defaultSettings.customLabel, show: extension_settings[extensionName].showCustom },
-        { key: 'delete', name: 'Delete', show: extension_settings[extensionName].showDelete }
-    ];
+    const options = getOrderedContextMenuOptions();
     options.forEach(option => {
         if (option.show) {
             let li = document.createElement('li');
