@@ -30,6 +30,10 @@ const defaultSettings = {
     shortenPreset: "",
     expandPreset: "",
     customPreset: "", 
+    rewriteLabel: "Rewrite",
+    shortenLabel: "Shorten",
+    expandLabel: "Expand",
+    customLabel: "Custom",
     highlightDuration: 3000,
     selectedModel: "chat_completion",
     textRewritePrompt: `[INST]Rewrite this section of text: """{{rewrite}}""" while keeping the same content, general style and length. Do not list alternatives and only print the result without prefix or suffix.[/INST]
@@ -120,6 +124,10 @@ function loadSettings() {
     $("#show_shorten").prop('checked', getSetting('showShorten', defaultSettings.showShorten));
     $("#show_expand").prop('checked', getSetting('showExpand', defaultSettings.showExpand));
     $("#show_custom").prop('checked', getSetting('showCustom', defaultSettings.showCustom)); 
+    $("#rewrite_label").val(getSetting('rewriteLabel', defaultSettings.rewriteLabel));
+    $("#shorten_label").val(getSetting('shortenLabel', defaultSettings.shortenLabel));
+    $("#expand_label").val(getSetting('expandLabel', defaultSettings.expandLabel));
+    $("#custom_label").val(getSetting('customLabel', defaultSettings.customLabel));
     $("#show_delete").prop('checked', getSetting('showDelete', defaultSettings.showDelete));
     $("#apply_regex_on_rewrite").prop('checked', getSetting('applyRegexOnRewrite', defaultSettings.applyRegexOnRewrite)); // Load new setting
 
@@ -162,6 +170,10 @@ function saveSettings() {
         showShorten: $("#show_shorten").is(':checked'),
         showExpand: $("#show_expand").is(':checked'),
         showCustom: $("#show_custom").is(':checked'), 
+        rewriteLabel: $("#rewrite_label").val(),
+        shortenLabel: $("#shorten_label").val(),
+        expandLabel: $("#expand_label").val(),
+        customLabel: $("#custom_label").val(),
         showDelete: $("#show_delete").is(':checked'),
         applyRegexOnRewrite: $("#apply_regex_on_rewrite").is(':checked'), // Save new setting
     };
@@ -236,14 +248,14 @@ jQuery(async () => {
     await populateDropdowns();
 
     // Add event listeners
-    $(".rewrite-extension-settings select, #highlight_duration, #text_rewrite_prompt, #text_shorten_prompt, #text_expand_prompt, #text_custom_prompt").on("change", saveSettings); // Added #text_custom_prompt
+    $(".rewrite-extension-settings select, #highlight_duration").on("change", saveSettings);
     $("#use_streaming").on("change", saveSettings);
     $("#use_dynamic_tokens, #dynamic_token_mode").on("change", () => {
         updateTokenSettings();
         saveSettings();
     });
     $("#rewrite_tokens, #shorten_tokens, #expand_tokens, #custom_tokens, #rewrite_tokens_add, #shorten_tokens_add, #expand_tokens_add, #custom_tokens_add, #rewrite_tokens_mult, #shorten_tokens_mult, #expand_tokens_mult, #custom_tokens_mult").on("input", saveSettings); // Added custom token inputs
-    $("#remove_prefix, #remove_suffix").on("change", saveSettings);
+    $("#text_rewrite_prompt, #text_shorten_prompt, #text_expand_prompt, #text_custom_prompt, #rewrite_label, #shorten_label, #expand_label, #custom_label, #remove_prefix, #remove_suffix").on("input change", saveSettings);
     $("#override_max_tokens").on("change", saveSettings);
     $("#show_rewrite, #show_shorten, #show_expand, #show_custom, #show_delete").on("change", saveSettings); // Added #show_custom
     $("#apply_regex_on_rewrite").on("change", saveSettings); // Add listener for new checkbox
@@ -391,10 +403,10 @@ async function handleMenuItemClick(e) {
                 const mesId = messageDiv.getAttribute('mesid');
                 const swipeId = messageDiv.getAttribute('swipeid');
 
-                if (option === 'Delete') {
+                if (option === 'delete') {
                     // Pass the initially captured range to handleDeleteSelection
                     await handleDeleteSelection(mesId, swipeId, initialRange);
-                } else if (option === 'Custom') {
+                } else if (option === 'custom') {
                     const customInstructions = await getCustomInstructionsFromPopup();
                     if (customInstructions !== null && customInstructions.trim() !== '') { // Proceed only if user entered text and didn't cancel
                         // Get selectionInfo *after* await and *before* handleRewrite
@@ -468,11 +480,11 @@ function createRewriteMenu() {
     rewriteMenu.style.position = 'fixed';
 
     const options = [
-        { name: 'Rewrite', show: extension_settings[extensionName].showRewrite },
-        { name: 'Shorten', show: extension_settings[extensionName].showShorten },
-        { name: 'Expand', show: extension_settings[extensionName].showExpand },
-        { name: 'Custom', show: extension_settings[extensionName].showCustom }, 
-        { name: 'Delete', show: extension_settings[extensionName].showDelete }
+        { key: 'rewrite', name: extension_settings[extensionName].rewriteLabel || defaultSettings.rewriteLabel, show: extension_settings[extensionName].showRewrite },
+        { key: 'shorten', name: extension_settings[extensionName].shortenLabel || defaultSettings.shortenLabel, show: extension_settings[extensionName].showShorten },
+        { key: 'expand', name: extension_settings[extensionName].expandLabel || defaultSettings.expandLabel, show: extension_settings[extensionName].showExpand },
+        { key: 'custom', name: extension_settings[extensionName].customLabel || defaultSettings.customLabel, show: extension_settings[extensionName].showCustom },
+        { key: 'delete', name: 'Delete', show: extension_settings[extensionName].showDelete }
     ];
     options.forEach(option => {
         if (option.show) {
@@ -481,7 +493,7 @@ function createRewriteMenu() {
             li.textContent = option.name;
             li.addEventListener('mousedown', handleMenuItemClick);
             li.addEventListener('touchstart', handleMenuItemClick);
-            li.dataset.option = option.name;
+            li.dataset.option = option.key;
             rewriteMenu.appendChild(li);
         }
     });
@@ -812,16 +824,16 @@ async function handleChatCompletionRewrite(mesId, swipeId, option, customInstruc
     // Get the selected preset based on the option
     let selectedPreset;
     switch (option) {
-        case 'Rewrite':
+        case 'rewrite':
             selectedPreset = extension_settings[extensionName].rewritePreset;
             break;
-        case 'Shorten':
+        case 'shorten':
             selectedPreset = extension_settings[extensionName].shortenPreset;
             break;
-        case 'Expand':
+        case 'expand':
             selectedPreset = extension_settings[extensionName].expandPreset;
             break;
-        case 'Custom': // New case
+        case 'custom':
             selectedPreset = extension_settings[extensionName].customPreset;
             break;
         default:
@@ -879,7 +891,7 @@ async function handleChatCompletionRewrite(mesId, swipeId, option, customInstruc
     let chatToSend = promptData.chat; // Start with the generated chat array
 
     // Inject custom instructions if applicable
-    if (option === 'Custom' && customInstructions) {
+    if (option === 'custom' && customInstructions) {
         // Find the last user message to append to
         let targetMessageIndex = -1;
         for (let i = chatToSend.length - 1; i >= 0; i--) {
@@ -1027,16 +1039,16 @@ async function handleSimplifiedChatCompletionRewrite(mesId, swipeId, option, cus
     // Get the text completion prompt based on the option
     let promptTemplate;
     switch (option) {
-        case 'Rewrite':
+        case 'rewrite':
             promptTemplate = extension_settings[extensionName].textRewritePrompt;
             break;
-        case 'Shorten':
+        case 'shorten':
             promptTemplate = extension_settings[extensionName].textShortenPrompt;
             break;
-        case 'Expand':
+        case 'expand':
             promptTemplate = extension_settings[extensionName].textExpandPrompt;
             break;
-        case 'Custom': // New case
+        case 'custom':
             promptTemplate = extension_settings[extensionName].textCustomPrompt;
             break;
         default:
@@ -1056,7 +1068,7 @@ async function handleSimplifiedChatCompletionRewrite(mesId, swipeId, option, cus
         .replace(/{{rewritecount}}/gi, wordCount);
 
     // Inject custom instructions if applicable
-    if (option === 'Custom') {
+    if (option === 'custom') {
         if (prompt.includes('{{custom_instructions}}')) {
             prompt = prompt.replace(/{{custom_instructions}}/gi, customInstructions);
         } else {
@@ -1135,16 +1147,16 @@ async function handleTextBasedRewrite(mesId, swipeId, option, customInstructions
     const selectedModel = extension_settings[extensionName].selectedModel;
     let promptTemplate;
     switch (option) {
-        case 'Rewrite':
+        case 'rewrite':
             promptTemplate = extension_settings[extensionName].textRewritePrompt;
             break;
-        case 'Shorten':
+        case 'shorten':
             promptTemplate = extension_settings[extensionName].textShortenPrompt;
             break;
-        case 'Expand':
+        case 'expand':
             promptTemplate = extension_settings[extensionName].textExpandPrompt;
             break;
-        case 'Custom': // New case
+        case 'custom':
             promptTemplate = extension_settings[extensionName].textCustomPrompt;
             break;
         default:
@@ -1164,7 +1176,7 @@ async function handleTextBasedRewrite(mesId, swipeId, option, customInstructions
         .replace(/{{rewritecount}}/gi, wordCount);
 
     // Inject custom instructions if applicable
-    if (option === 'Custom') {
+    if (option === 'custom') {
         if (prompt.includes('{{custom_instructions}}')) {
             prompt = prompt.replace(/{{custom_instructions}}/gi, customInstructions);
         } else {
@@ -1180,16 +1192,16 @@ async function handleTextBasedRewrite(mesId, swipeId, option, customInstructions
         amount_gen = calculateTargetTokenCount(selectedRawText, option);
     } else {
         switch (option) {
-            case 'Rewrite':
+            case 'rewrite':
                 amount_gen = extension_settings[extensionName].rewriteTokens;
                 break;
-            case 'Shorten':
+            case 'shorten':
                 amount_gen = extension_settings[extensionName].shortenTokens;
                 break;
-            case 'Expand':
+            case 'expand':
                 amount_gen = extension_settings[extensionName].expandTokens;
                 break;
-            case 'Custom': // New case
+            case 'custom':
                 amount_gen = extension_settings[extensionName].customTokens;
                 break;
         }
@@ -1205,7 +1217,7 @@ async function handleTextBasedRewrite(mesId, swipeId, option, customInstructions
             generateData = getTextGenGenerationData(prompt, amount_gen, false, false, null, 'quiet');
             break;
         case 'koboldhorde':
-            if (option === 'Custom') {
+            if (option === 'custom') {
                 // For Custom Horde, use the manually constructed prompt directly
                 // We need a basic structure for generateHorde, mimicking what getContext().generate would provide
                 generateData = {
@@ -1339,13 +1351,13 @@ function calculateTargetTokenCount(selectedText, option) {
         if (dynamicTokenMode === 'additive') {
             let modifier;
             switch (option) {
-                case 'Rewrite':
+                case 'rewrite':
                     modifier = extension_settings[extensionName].rewriteTokensAdd;
                     break;
-                case 'Shorten':
+                case 'shorten':
                     modifier = extension_settings[extensionName].shortenTokensAdd;
                     break;
-                case 'Expand':
+                case 'expand':
                     modifier = extension_settings[extensionName].expandTokensAdd;
                     break;
             }
@@ -1353,13 +1365,13 @@ function calculateTargetTokenCount(selectedText, option) {
         } else { // multiplicative
             let multiplier;
             switch (option) {
-                case 'Rewrite':
+                case 'rewrite':
                     multiplier = extension_settings[extensionName].rewriteTokensMult;
                     break;
-                case 'Shorten':
+                case 'shorten':
                     multiplier = extension_settings[extensionName].shortenTokensMult;
                     break;
-                case 'Expand':
+                case 'expand':
                     multiplier = extension_settings[extensionName].expandTokensMult;
                     break;
             }
@@ -1367,13 +1379,13 @@ function calculateTargetTokenCount(selectedText, option) {
         }
     } else {
         switch (option) {
-            case 'Rewrite':
+            case 'rewrite':
                 result = extension_settings[extensionName].rewriteTokens;
                 break;
-            case 'Shorten':
+            case 'shorten':
                 result = extension_settings[extensionName].shortenTokens;
                 break;
-            case 'Expand':
+            case 'expand':
                 result = extension_settings[extensionName].expandTokens;
                 break;
         }
