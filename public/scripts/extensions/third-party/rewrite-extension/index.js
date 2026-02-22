@@ -23,6 +23,7 @@ const extensionName = "rewrite-extension";
 const extensionFolderPath = `scripts/extensions/third-party/${extensionName}`;
 
 const undo_steps = 15;
+const highlightDisplayDurationMs = 1500;
 
 // Default settings
 const defaultSettings = {
@@ -563,6 +564,10 @@ function removeUndoButton(editedMesId) {
     updateUndoButtons();
 }
 
+function scheduleHighlightCleanup(mesDiv, mesId, swipeId) {
+    setTimeout(() => removeHighlight(mesDiv, mesId, swipeId), highlightDisplayDurationMs);
+}
+
 async function removeHighlight(mesDiv, mesId, swipeId) {
     const highlightSpan = mesDiv.querySelector('.animated-highlight');
     if (highlightSpan) {
@@ -1006,7 +1011,7 @@ async function handleChatCompletionRewrite(mesId, swipeId, option, customInstruc
             range.insertNode(highlightedNewText);
         }
 
-        removeHighlight(mesDiv, mesId, swipeId);
+        scheduleHighlightCleanup(mesDiv, mesId, swipeId);
 
         await saveRewrittenText(mesId, swipeId, fullMessage, rawStartOffset, rawEndOffset, newText);
 
@@ -1117,8 +1122,8 @@ async function handleSimplifiedChatCompletionRewrite(mesId, swipeId, option, cus
         range.insertNode(highlightedNewText);
     }
 
-    // Remove highlight after x seconds when streaming is complete
-    removeHighlight(mesDiv, mesId, swipeId);
+    // Keep the highlight visible briefly after rewrite
+    scheduleHighlightCleanup(mesDiv, mesId, swipeId);
 
     await saveRewrittenText(mesId, swipeId, fullMessage, rawStartOffset, rawEndOffset, newText);
     getContext().activateSendButtons();
@@ -1303,8 +1308,8 @@ async function handleTextBasedRewrite(mesId, swipeId, option, customInstructions
         range.insertNode(highlightedNewText);
     }
 
-    // Remove highlight after x seconds when streaming is complete
-    removeHighlight(mesDiv, mesId, swipeId);
+    // Keep the highlight visible briefly after rewrite
+    scheduleHighlightCleanup(mesDiv, mesId, swipeId);
 
     await saveRewrittenText(mesId, swipeId, fullMessage, rawStartOffset, rawEndOffset, newText);
     getContext().activateSendButtons();
