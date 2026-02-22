@@ -48,10 +48,6 @@ Sure, here is only the rewritten text without any comments: `,
 
 Sure, here is only the rewritten text without any comments: `, 
     useStreaming: true,
-    rewriteTokens: 100,
-    shortenTokens: 50,
-    expandTokens: 150,
-    customTokens: 100,   
     removePrefix: `"`,
     removeSuffix: `"`,
     overrideMaxTokens: true,
@@ -91,10 +87,6 @@ function loadSettings() {
     $("#text_expand_prompt").val(getSetting('textExpandPrompt', defaultSettings.textExpandPrompt));
     $("#text_custom_prompt").val(getSetting('textCustomPrompt', defaultSettings.textCustomPrompt)); 
     $("#use_streaming").prop('checked', getSetting('useStreaming', defaultSettings.useStreaming));
-    $("#rewrite_tokens").val(getSetting('rewriteTokens', defaultSettings.rewriteTokens));
-    $("#shorten_tokens").val(getSetting('shortenTokens', defaultSettings.shortenTokens));
-    $("#expand_tokens").val(getSetting('expandTokens', defaultSettings.expandTokens));
-    $("#custom_tokens").val(getSetting('customTokens', defaultSettings.customTokens)); 
     $("#remove_prefix").val(getSetting('removePrefix', defaultSettings.removePrefix));
     $("#remove_suffix").val(getSetting('removeSuffix', defaultSettings.removeSuffix));
     $("#override_max_tokens").prop('checked', getSetting('overrideMaxTokens', defaultSettings.overrideMaxTokens));
@@ -125,10 +117,6 @@ function saveSettings() {
         textExpandPrompt: $("#text_expand_prompt").val(),
         textCustomPrompt: $("#text_custom_prompt").val(), 
         useStreaming: $("#use_streaming").is(':checked'),
-        rewriteTokens: parseInt($("#rewrite_tokens").val()),
-        shortenTokens: parseInt($("#shorten_tokens").val()),
-        expandTokens: parseInt($("#expand_tokens").val()),
-        customTokens: parseInt($("#custom_tokens").val()),   
         removePrefix: $("#remove_prefix").val(),
         removeSuffix: $("#remove_suffix").val(),
         overrideMaxTokens: $("#override_max_tokens").is(':checked'),
@@ -207,7 +195,6 @@ jQuery(async () => {
     // Add event listeners
     $(".rewrite-extension-settings select").on("change", saveSettings);
     $("#use_streaming").on("change", saveSettings);
-    $("#rewrite_tokens, #shorten_tokens, #expand_tokens, #custom_tokens").on("input", saveSettings);
     $("#text_rewrite_prompt, #text_shorten_prompt, #text_expand_prompt, #text_custom_prompt, #rewrite_label, #shorten_label, #expand_label, #custom_label, #remove_prefix, #remove_suffix").on("input change", saveSettings);
     $("#override_max_tokens").on("change", saveSettings);
     $("#show_rewrite, #show_shorten, #show_expand, #show_custom, #show_delete").on("change", saveSettings); // Added #show_custom
