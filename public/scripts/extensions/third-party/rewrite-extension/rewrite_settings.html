@@ -5,45 +5,6 @@
             <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
         </div>
         <div class="inline-drawer-content">
-            <div id="chat_completion_settings" class="model-specific-settings">
-                <div class="rewrite-extension_block flex-container">
-                    <label for="rewrite_preset">Rewrite Preset:</label>
-                    <span class="tooltip-icon fa-solid fa-circle-question" data-tooltip="To use a simple 'System: prompt', switch to Text Completion. This will always use the preset's max tokens setting."></span>
-                    <select id="rewrite_preset" class="text_pole" data-preset-manager-for="rewrite">
-                        <!-- Options will be populated dynamically -->
-                    </select>
-                </div>
-
-                <div class="rewrite-extension_block flex-container">
-                    <label for="shorten_preset">Shorten Preset:</label>
-                    <select id="shorten_preset" class="text_pole" data-preset-manager-for="shorten">
-                        <!-- Options will be populated dynamically -->
-                    </select>
-                </div>
-
-                <div class="rewrite-extension_block flex-container">
-                    <label for="expand_preset">Expand Preset:</label>
-                    <select id="expand_preset" class="text_pole" data-preset-manager-for="expand">
-                        <!-- Options will be populated dynamically -->
-                    </select>
-                </div>
-
-                <div class="rewrite-extension_block flex-container">
-                    <label for="custom_preset">Custom Preset:</label>
-                    <select id="custom_preset" class="text_pole" data-preset-manager-for="custom">
-                        <!-- Options will be populated dynamically -->
-                    </select>
-                </div>
-
-                <div class="rewrite-extension_block flex-container checkbox-container">
-                    <div class="checkbox-label-group">
-                        <input type="checkbox" id="override_max_tokens" class="checkbox" checked>
-                        <label for="override_max_tokens">Override Preset Max Tokens</label>
-                    </div>
-                    <span class="tooltip-icon fa-solid fa-circle-question" data-tooltip="If checked, the extension will override the max tokens set in the chat completion preset."></span>
-                </div>
-            </div>
-
             <div id="text_based_settings" class="model-specific-settings">
                 <div id="rewrite_option_widgets" class="rewrite-option-widgets">
                     <div class="rewrite-extension_block rewrite-option-widget" data-option-key="rewrite" style="border: 1px solid var(--SmartThemeBorderColor); padding: 8px; margin-bottom: 10px;">

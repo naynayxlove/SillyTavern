@@ -64,7 +64,7 @@ const defaultSettings = {
     showExtra8: true,
     showExtra9: true,
     showExtra10: true,
-    selectedModel: "chat_completion",
+    selectedModel: "textgenerationwebui",
     promptRole: "system",
     textRewritePrompt: `[INST]Rewrite this section of text: """{{rewrite}}""" while keeping the same content, general style and length. Do not list alternatives and only print the result without prefix or suffix.[/INST]
 
