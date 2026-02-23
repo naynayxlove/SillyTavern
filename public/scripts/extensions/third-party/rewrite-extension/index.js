@@ -263,9 +263,18 @@ async function populateDropdowns() {
             });
         });
 
-        // Set the selected values after populating
-        loadSettings();
+        // Set selected values after populating, but avoid stealing focus while user is typing.
+        if (!isEditingRewriteSettingsInput()) {
+            loadSettings();
+        }
     }
+}
+
+function isEditingRewriteSettingsInput() {
+    const activeElement = document.activeElement;
+    return Boolean(activeElement
+        && activeElement.closest('.rewrite-extension-settings')
+        && (activeElement.matches('input, textarea, select') || activeElement.isContentEditable));
 }
 
 function updateModelSettings() {
@@ -396,7 +405,9 @@ jQuery(async () => {
 
     // Add event listener for SETTINGS_UPDATED
     eventSource.on(event_types.SETTINGS_UPDATED, () => {
-        populateDropdowns();
+        if (!isEditingRewriteSettingsInput()) {
+            populateDropdowns();
+        }
     });
 
     eventSource.on(event_types.CHAT_CHANGED, () => {
