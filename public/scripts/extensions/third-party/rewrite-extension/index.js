@@ -987,14 +987,14 @@ async function openRewritePreviewInline(mesId, swipeId, option, customInstructio
     previewRoot.className = 'rewrite-inline-preview';
     previewRoot.innerHTML = `
         <span class="rewrite-inline-preview-toolbar">
-            <button class="menu_button rewrite-inline-preview-apply">APPLY</button>
-            <button class="menu_button rewrite-inline-preview-retry">RETRY</button>
-            <button class="menu_button rewrite-inline-preview-cancel">CANCEL</button>
-            <button class="menu_button rewrite-inline-preview-prev" title="Previous generation">◀</button>
-            <button class="menu_button rewrite-inline-preview-next" title="Next generation">▶</button>
+            <button class="menu_button rewrite-inline-preview-button rewrite-inline-preview-apply" title="Apply preview">Apply</button>
+            <button class="menu_button rewrite-inline-preview-button rewrite-inline-preview-retry" title="Generate again">Retry</button>
+            <button class="menu_button rewrite-inline-preview-button rewrite-inline-preview-cancel" title="Cancel preview">Cancel</button>
+            <button class="menu_button rewrite-inline-preview-button rewrite-inline-preview-prev" title="Previous generation">◀</button>
+            <button class="menu_button rewrite-inline-preview-button rewrite-inline-preview-next" title="Next generation">▶</button>
             <span class="rewrite-inline-preview-index">Generation 0 / 0</span>
         </span>
-        <span class="rewrite-inline-preview-content animated-highlight">Generating...</span>
+        <span class="rewrite-inline-preview-content">Generating...</span>
     `;
 
     range.deleteContents();
