@@ -299,6 +299,16 @@
     padding: 1px 4px;
 }
 
+.rewrite-inline-preview-content::selection {
+    background: transparent;
+    color: inherit;
+}
+
+.rewrite-inline-preview-content::-moz-selection {
+    background: transparent;
+    color: inherit;
+}
+
 .rewrite-inline-preview-index {
     display: inline-flex;
     align-items: center;
