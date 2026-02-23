@@ -279,7 +279,8 @@
     overflow: hidden;
 }
 
-.rewrite-inline-preview-apply {
+.rewrite-inline-preview-apply,
+.rewrite-inline-preview-retry {
     font-weight: 600;
 }
 
