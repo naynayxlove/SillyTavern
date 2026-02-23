@@ -1011,18 +1011,18 @@ async function openRewritePreviewInline(mesId, swipeId, option, customInstructio
     const retryButton = previewRoot.querySelector('.rewrite-inline-preview-retry');
     const cancelButton = previewRoot.querySelector('.rewrite-inline-preview-cancel');
 
-    const generations = [];
-    let generationIndex = -1;
+    const generations = [selectionInfo.selectedRawText ?? ''];
+    let generationIndex = 0;
     let isGenerating = false;
 
     const renderGeneration = () => {
-        if (generationIndex < 0 || !generations[generationIndex]) {
+        if (generationIndex < 0 || generations[generationIndex] === undefined) {
             indexLabel.textContent = 'Generation 0 / 0';
-            content.textContent = isGenerating ? 'Generating...' : 'No generations yet.';
+            content.textContent = isGenerating ? 'Generating...' : '';
             return;
         }
         content.textContent = generations[generationIndex];
-        indexLabel.textContent = `Generation ${generationIndex + 1} / ${generations.length}`;
+        indexLabel.textContent = `Generation ${generationIndex} / ${Math.max(generations.length - 1, 0)}`;
     };
 
     const onKeyDown = (event) => {
@@ -1091,7 +1091,14 @@ async function openRewritePreviewInline(mesId, swipeId, option, customInstructio
     retryButton.addEventListener('click', generate);
 
     applyButton.addEventListener('click', async () => {
-        if (generationIndex < 0 || !generations[generationIndex]) return;
+        if (generationIndex < 0 || generations[generationIndex] === undefined) return;
+
+        if (generationIndex === 0) {
+            activeInlinePreview = null;
+            cleanup();
+            return;
+        }
+
         const { fullMessage, rawStartOffset, rawEndOffset } = selectionInfo;
         await saveRewrittenText(mesId, swipeId, fullMessage, rawStartOffset, rawEndOffset, generations[generationIndex]);
         activeInlinePreview = null;
@@ -1100,6 +1107,7 @@ async function openRewritePreviewInline(mesId, swipeId, option, customInstructio
 
     cancelButton.addEventListener('click', cleanup);
     document.addEventListener('keydown', onKeyDown);
+    renderGeneration();
     selectNodeContents(content);
 
     await generate();
