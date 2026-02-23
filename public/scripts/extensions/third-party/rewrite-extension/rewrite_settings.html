@@ -5,15 +5,6 @@
             <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
         </div>
         <div class="inline-drawer-content">
-            <div class="rewrite-extension_block flex-container">
-                <label for="rewrite_extension_model_select">Configure Model:</label>
-                <span class="tooltip-icon fa-solid fa-circle-question" data-tooltip="Choose which Completion type to configure. For Chat Completion this affects if presets or templates are used."></span>
-                <select id="rewrite_extension_model_select" class="text_pole">
-                    <option value="chat_completion">Chat Completion</option>
-                    <option value="textgenerationwebui">Text Completion/NovelAI</option>
-                </select>
-            </div>
-
             <div id="chat_completion_settings" class="model-specific-settings">
                 <div class="rewrite-extension_block flex-container">
                     <label for="rewrite_preset">Rewrite Preset:</label>
@@ -53,7 +44,7 @@
                 </div>
             </div>
 
-            <div id="text_based_settings" class="model-specific-settings" style="display: none;">
+            <div id="text_based_settings" class="model-specific-settings">
                 <div id="rewrite_option_widgets" class="rewrite-option-widgets">
                     <div class="rewrite-extension_block rewrite-option-widget" data-option-key="rewrite" style="border: 1px solid var(--SmartThemeBorderColor); padding: 8px; margin-bottom: 10px;">
                         <div class="flex-container alignitemscenter" style="gap: 8px; flex-wrap: nowrap;">
@@ -270,6 +261,16 @@
             <hr class="sysHR" />
 
             <!-- Universal settings -->
+            <div class="rewrite-extension_block flex-container">
+                <label for="rewrite_prompt_role">Prompt Role (all prompts):</label>
+                <span class="tooltip-icon fa-solid fa-circle-question" data-tooltip="Sets the role used for rewrite prompts globally (system/user/assistant)."></span>
+                <select id="rewrite_prompt_role" class="text_pole">
+                    <option value="system">System</option>
+                    <option value="user">User</option>
+                    <option value="assistant">Assistant</option>
+                </select>
+            </div>
+
             <div class="rewrite-extension_block flex-container checkbox-container">
                 <div class="checkbox-label-group">
                     <input type="checkbox" id="use_streaming" class="checkbox">

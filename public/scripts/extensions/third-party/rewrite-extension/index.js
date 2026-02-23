@@ -65,6 +65,7 @@ const defaultSettings = {
     showExtra9: true,
     showExtra10: true,
     selectedModel: "chat_completion",
+    promptRole: "system",
     textRewritePrompt: `[INST]Rewrite this section of text: """{{rewrite}}""" while keeping the same content, general style and length. Do not list alternatives and only print the result without prefix or suffix.[/INST]
 
 Sure, here is only the rewritten text without any comments: `,
@@ -114,6 +115,7 @@ function loadSettings() {
     $("#expand_preset").val(getSetting('expandPreset', defaultSettings.expandPreset));
     $("#custom_preset").val(getSetting('customPreset', defaultSettings.customPreset)); 
     $("#rewrite_extension_model_select").val(getSetting('selectedModel', defaultSettings.selectedModel));
+    $("#rewrite_prompt_role").val(getSetting('promptRole', defaultSettings.promptRole));
     $("#text_rewrite_prompt").val(getSetting('textRewritePrompt', defaultSettings.textRewritePrompt));
     $("#text_shorten_prompt").val(getSetting('textShortenPrompt', defaultSettings.textShortenPrompt));
     $("#text_expand_prompt").val(getSetting('textExpandPrompt', defaultSettings.textExpandPrompt));
@@ -175,7 +177,8 @@ function saveSettings() {
         shortenPreset: $("#shorten_preset").val(),
         expandPreset: $("#expand_preset").val(),
         customPreset: $("#custom_preset").val(), 
-        selectedModel: $("#rewrite_extension_model_select").val(),
+        selectedModel: $("#rewrite_extension_model_select").val() || defaultSettings.selectedModel,
+        promptRole: $("#rewrite_prompt_role").val() || defaultSettings.promptRole,
         textRewritePrompt: $("#text_rewrite_prompt").val(),
         textShortenPrompt: $("#text_shorten_prompt").val(),
         textExpandPrompt: $("#text_expand_prompt").val(),
@@ -270,7 +273,13 @@ function updateModelSettings() {
     const chatCompletionSettings = document.getElementById('chat_completion_settings');
     const textBasedSettings = document.getElementById('text_based_settings');
 
-    if (modelSelect.value === 'chat_completion') {
+    if (!chatCompletionSettings || !textBasedSettings) {
+        return;
+    }
+
+    const modelValue = modelSelect?.value || defaultSettings.selectedModel;
+
+    if (modelValue === 'chat_completion') {
         chatCompletionSettings.style.display = 'block';
         textBasedSettings.style.display = 'none';
     } else {
@@ -381,11 +390,6 @@ jQuery(async () => {
     $("#override_max_tokens").on("change", saveSettings);
     $("#show_rewrite, #show_shorten, #show_expand, #show_custom, #show_extra1, #show_extra2, #show_extra3, #show_extra4, #show_extra5, #show_extra6, #show_extra7, #show_extra8, #show_extra9, #show_extra10, #show_delete").on("change", saveSettings); // Added #show_custom
     $("#apply_regex_on_rewrite").on("change", saveSettings); // Add listener for new checkbox
-
-    $("#rewrite_extension_model_select").on("change", () => {
-        updateModelSettings();
-        saveSettings();
-    });
 
     // Load settings
     loadSettings();
@@ -1334,6 +1338,11 @@ async function handleChatCompletionRewrite(mesId, swipeId, option, customInstruc
 
 
 
+function getRewritePromptRole() {
+    const role = extension_settings[extensionName]?.promptRole;
+    return ['system', 'user', 'assistant'].includes(role) ? role : defaultSettings.promptRole;
+}
+
 function getPromptTemplateForOption(option) {
     switch (option) {
         case 'rewrite': return extension_settings[extensionName].textRewritePrompt;
@@ -1389,7 +1398,7 @@ async function handleSimplifiedChatCompletionRewrite(mesId, swipeId, option, cus
     // Create a simplified chat format
     const simplifiedChat = [
         {
-            role: "system",
+            role: getRewritePromptRole(),
             content: prompt
         }
     ];
