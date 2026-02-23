@@ -989,9 +989,9 @@ async function openRewritePreviewInline(mesId, swipeId, option, customInstructio
         <span class="rewrite-inline-preview-toolbar">
             <button class="menu_button rewrite-inline-preview-button rewrite-inline-preview-apply" title="Apply preview">Apply</button>
             <button class="menu_button rewrite-inline-preview-button rewrite-inline-preview-retry" title="Generate again">Retry</button>
-            <button class="menu_button rewrite-inline-preview-button rewrite-inline-preview-cancel" title="Cancel preview">Cancel</button>
             <button class="menu_button rewrite-inline-preview-button rewrite-inline-preview-prev" title="Previous generation">◀</button>
             <button class="menu_button rewrite-inline-preview-button rewrite-inline-preview-next" title="Next generation">▶</button>
+            <button class="menu_button rewrite-inline-preview-button rewrite-inline-preview-cancel" title="Cancel preview" aria-label="Cancel preview">✕</button>
             <span class="rewrite-inline-preview-index">Generation 0 / 0</span>
         </span>
         <span class="rewrite-inline-preview-content">Generating...</span>

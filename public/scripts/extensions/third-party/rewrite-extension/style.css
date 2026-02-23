@@ -240,34 +240,53 @@
 }
 
 .rewrite-inline-preview {
-    display: inline;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
     line-height: 1.35;
+    max-width: 100%;
 }
 
 .rewrite-inline-preview-toolbar {
     display: inline-flex;
     align-items: center;
     flex-wrap: nowrap;
+    white-space: nowrap;
+    writing-mode: horizontal-tb;
     gap: 4px;
-    margin-right: 6px;
     padding: 2px 4px;
     border-radius: 6px;
     background: color-mix(in srgb, var(--SmartThemeBlurTintColor) 80%, transparent);
     border: 1px solid var(--SmartThemeBorderColor);
-    vertical-align: baseline;
+    vertical-align: top;
+    max-width: 100%;
 }
 
 .rewrite-inline-preview-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     min-height: 22px;
     height: 22px;
+    min-width: 26px;
     padding: 0 6px;
     font-size: 0.78em;
-    line-height: 1;
+    line-height: 1.1;
     border-radius: 5px;
+    writing-mode: horizontal-tb;
+    text-orientation: mixed;
+    overflow: hidden;
 }
 
 .rewrite-inline-preview-apply {
     font-weight: 600;
+}
+
+.rewrite-inline-preview-cancel {
+    color: var(--danger, #e53935);
+    border-color: color-mix(in srgb, var(--danger, #e53935) 55%, var(--SmartThemeBorderColor));
+    font-weight: 700;
 }
 
 .rewrite-inline-preview-content {
