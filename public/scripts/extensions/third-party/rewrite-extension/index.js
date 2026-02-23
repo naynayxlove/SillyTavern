@@ -517,6 +517,10 @@ async function handleMenuItemClick(e) {
     const initialRange = selection.getRangeAt(0).cloneRange();
     const selectedText = initialRange.toString().trim();
 
+    // Hide the context menu immediately once an action is picked.
+    // Keep it hidden while preview generation is in progress.
+    removeRewriteMenu();
+
     if (selectedText) {
         const mesTextElement = findClosestMesText(selection.anchorNode);
         if (mesTextElement) {
@@ -556,7 +560,6 @@ async function handleMenuItemClick(e) {
         }
     }
 
-    removeRewriteMenu();
 }
 
 // Modify signature to accept the captured range
