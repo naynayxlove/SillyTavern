@@ -206,6 +206,14 @@
 
             <div class="rewrite-extension_block flex-container checkbox-container">
                 <div class="checkbox-label-group">
+                    <input type="checkbox" id="show_delete" class="checkbox" checked title="Show this option in the context menu" aria-label="Show this option">
+                    <label for="show_delete">Show Delete</label>
+                </div>
+                <span class="tooltip-icon fa-solid fa-circle-question" data-tooltip="If checked, shows the Delete action in the rewrite context menu."></span>
+            </div>
+
+            <div class="rewrite-extension_block flex-container checkbox-container">
+                <div class="checkbox-label-group">
                     <input type="checkbox" id="use_streaming" class="checkbox">
                     <label for="use_streaming">Use Streaming</label>
                 </div>
@@ -235,12 +243,6 @@
                     <input type="text" id="remove_prefix" class="text_pole" style="width: 49%;" placeholder="Prefix to remove">
                     <input type="text" id="remove_suffix" class="text_pole" style="width: 49%;" placeholder="Suffix to remove">
                 </div>
-            </div>
-
-            <hr class="sysHR" />
-            <div class="rewrite-extension_block checkbox-container">
-                <input type="checkbox" id="show_delete" class="checkbox" checked title="Show this option in the context menu" aria-label="Show this option">
-                <label for="show_delete">Show Delete</label>
             </div>
         </div>
     </div>
