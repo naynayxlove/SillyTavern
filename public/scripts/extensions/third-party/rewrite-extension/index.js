@@ -93,6 +93,7 @@ Sure, here is only the rewritten text without any comments: `,
 let rewriteMenu = null;
 let lastSelection = null;
 let abortController;
+let activeInlinePreview = null;
 
 let changeHistory = [];
 
@@ -447,12 +448,41 @@ function handleSelectionChange() {
 }
 
 function processSelection() {
+    if (activeInlinePreview) {
+        return;
+    }
+
     // First, check if getContext().chatId is defined
     if (getContext().chatId === undefined) {
         return; // Exit the function if chatId is undefined
     }
 
     let selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) {
+        removeRewriteMenu();
+        lastSelection = null;
+        return;
+    }
+
+    const activeElement = document.activeElement;
+    if (activeElement
+        && activeElement.closest('.rewrite-extension-settings')
+        && (activeElement.matches('input, textarea, select') || activeElement.isContentEditable)) {
+        removeRewriteMenu();
+        lastSelection = null;
+        return;
+    }
+
+    const selectionAnchorElement = selection.anchorNode?.nodeType === Node.ELEMENT_NODE
+        ? selection.anchorNode
+        : selection.anchorNode?.parentElement;
+
+    if (!selectionAnchorElement || !selectionAnchorElement.closest('#chat')) {
+        removeRewriteMenu();
+        lastSelection = null;
+        return;
+    }
+
     let selectedText = selection.toString().trim();
 
     // Always remove the existing menu first
@@ -512,6 +542,10 @@ async function handleMenuItemClick(e) {
     const initialRange = selection.getRangeAt(0).cloneRange();
     const selectedText = initialRange.toString().trim();
 
+    // Hide the context menu immediately once an action is picked.
+    // Keep it hidden while preview generation is in progress.
+    removeRewriteMenu();
+
     if (selectedText) {
         const mesTextElement = findClosestMesText(selection.anchorNode);
         if (mesTextElement) {
@@ -551,8 +585,6 @@ async function handleMenuItemClick(e) {
         }
     }
 
-    removeRewriteMenu();
-    window.getSelection().removeAllRanges();
 }
 
 // Modify signature to accept the captured range
@@ -914,7 +946,7 @@ async function handleRewrite(mesId, swipeId, option, customInstructions = null, 
         return; // Cannot proceed without selection info
     }
 
-    return openRewritePreviewDialog(mesId, swipeId, option, customInstructions, selectionInfo);
+    return openRewritePreviewInline(mesId, swipeId, option, customInstructions, selectionInfo);
 }
 
 async function generateRewriteCandidate(mesId, swipeId, option, customInstructions, selectionInfo, onProgress) {
@@ -934,49 +966,88 @@ async function generateRewriteCandidate(mesId, swipeId, option, customInstructio
     }
 }
 
-async function openRewritePreviewDialog(mesId, swipeId, option, customInstructions, selectionInfo) {
-    const dialog = document.createElement('div');
-    dialog.style.cssText = 'position:fixed; inset:0; z-index:4000; background:var(--black30a); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center;';
-    dialog.innerHTML = `
-        <div style="width:min(820px,92vw); max-height:85vh; display:flex; flex-direction:column; background:var(--SmartThemeBlurTintColor); border:1px solid var(--SmartThemeBorderColor); border-radius:12px; box-shadow:0 10px 30px var(--black50a);">
-            <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 12px; border-bottom:1px solid var(--SmartThemeBorderColor);">
-                <div class="flex-container alignitemscenter" style="gap:8px;">
-                    <button class="menu_button rewrite-preview-prev" title="Previous generation">◀</button>
-                    <span class="rewrite-preview-index">Generation 0 / 0</span>
-                    <button class="menu_button rewrite-preview-next" title="Next generation">▶</button>
-                </div>
-                <button class="menu_button rewrite-preview-close" title="Close">✕</button>
-            </div>
-            <div class="rewrite-preview-content" style="padding:12px; overflow:auto; white-space:pre-wrap; min-height:180px; font-family: var(--mainFontFamily);">Generating...</div>
-            <div style="display:flex; justify-content:flex-end; gap:8px; padding:10px 12px; border-top:1px solid var(--SmartThemeBorderColor);">
-                <button class="menu_button rewrite-preview-apply">APPLY</button>
-                <button class="menu_button rewrite-preview-retry">RETRY</button>
-                <button class="menu_button rewrite-preview-cancel">CANCEL</button>
-            </div>
-        </div>`;
-    document.body.appendChild(dialog);
+function renderMessageInPlace(mesId) {
+    const context = getContext();
+    const messageDiv = document.querySelector(`[mesid="${mesId}"]`);
+    const mesTextElement = messageDiv?.querySelector('.mes_text');
+    const mesIndex = Number(mesId);
+    if (!mesTextElement || Number.isNaN(mesIndex) || !context.chat[mesIndex]) {
+        return;
+    }
 
-    const content = dialog.querySelector('.rewrite-preview-content');
-    const indexLabel = dialog.querySelector('.rewrite-preview-index');
-    const prevButton = dialog.querySelector('.rewrite-preview-prev');
-    const nextButton = dialog.querySelector('.rewrite-preview-next');
-    const applyButton = dialog.querySelector('.rewrite-preview-apply');
-    const retryButton = dialog.querySelector('.rewrite-preview-retry');
-    const closeButton = dialog.querySelector('.rewrite-preview-close');
-    const cancelButton = dialog.querySelector('.rewrite-preview-cancel');
+    mesTextElement.innerHTML = messageFormatting(
+        context.chat[mesIndex].mes,
+        context.name2,
+        context.chat[mesIndex].isSystem,
+        context.chat[mesIndex].isUser,
+        mesIndex,
+    );
+    addCopyToCodeBlocks(mesTextElement);
+}
 
-    const generations = [];
-    let generationIndex = -1;
+function selectNodeContents(node) {
+    const selection = window.getSelection();
+    if (!selection || !node) return;
+
+    const range = document.createRange();
+    range.selectNodeContents(node);
+    selection.removeAllRanges();
+    selection.addRange(range);
+}
+
+async function openRewritePreviewInline(mesId, swipeId, option, customInstructions, selectionInfo) {
+    const messageDiv = document.querySelector(`[mesid="${mesId}"]`);
+    const mesTextElement = messageDiv?.querySelector('.mes_text');
+    if (!mesTextElement) {
+        return;
+    }
+
+    if (activeInlinePreview?.cleanup) {
+        activeInlinePreview.cleanup();
+    }
+
+    const range = selectionInfo.range?.cloneRange();
+    if (!range) {
+        return;
+    }
+
+    const previewRoot = document.createElement('span');
+    previewRoot.className = 'rewrite-inline-preview';
+    previewRoot.innerHTML = `
+        <span class="rewrite-inline-preview-toolbar">
+            <button class="menu_button rewrite-inline-preview-button rewrite-inline-preview-apply" title="Apply preview">Apply</button>
+            <button class="menu_button rewrite-inline-preview-button rewrite-inline-preview-retry" title="Generate again">Redo</button>
+            <button class="menu_button rewrite-inline-preview-button rewrite-inline-preview-prev" title="Previous generation">◀</button>
+            <button class="menu_button rewrite-inline-preview-button rewrite-inline-preview-next" title="Next generation">▶</button>
+            <button class="menu_button rewrite-inline-preview-button rewrite-inline-preview-cancel" title="Cancel preview" aria-label="Cancel preview">✕</button>
+            <span class="rewrite-inline-preview-index">Generation 0 / 0</span>
+        </span>
+        <span class="rewrite-inline-preview-content">Generating...</span>
+    `;
+
+    range.deleteContents();
+    range.insertNode(previewRoot);
+
+    const content = previewRoot.querySelector('.rewrite-inline-preview-content');
+    const indexLabel = previewRoot.querySelector('.rewrite-inline-preview-index');
+    const prevButton = previewRoot.querySelector('.rewrite-inline-preview-prev');
+    const nextButton = previewRoot.querySelector('.rewrite-inline-preview-next');
+    const applyButton = previewRoot.querySelector('.rewrite-inline-preview-apply');
+    const retryButton = previewRoot.querySelector('.rewrite-inline-preview-retry');
+    const cancelButton = previewRoot.querySelector('.rewrite-inline-preview-cancel');
+
+    const generations = [selectionInfo.selectedRawText ?? ''];
+    let generationIndex = 0;
     let isGenerating = false;
 
     const renderGeneration = () => {
-        if (generationIndex < 0 || !generations[generationIndex]) {
+        if (generationIndex < 0 || generations[generationIndex] === undefined) {
             indexLabel.textContent = 'Generation 0 / 0';
-            content.textContent = isGenerating ? 'Generating...' : 'No generations yet.';
+            content.textContent = isGenerating ? 'Generating...' : '';
             return;
         }
         content.textContent = generations[generationIndex];
-        indexLabel.textContent = `Generation ${generationIndex + 1} / ${generations.length}`;
+        indexLabel.textContent = `Generation ${generationIndex} / ${Math.max(generations.length - 1, 0)}`;
     };
 
     const onKeyDown = (event) => {
@@ -997,8 +1068,15 @@ async function openRewritePreviewDialog(mesId, swipeId, option, customInstructio
             getContext().activateSendButtons();
         }
         document.removeEventListener('keydown', onKeyDown);
-        dialog.remove();
+
+        if (activeInlinePreview?.mesId === mesId) {
+            activeInlinePreview = null;
+        }
+
+        renderMessageInPlace(mesId);
     };
+
+    activeInlinePreview = { mesId, cleanup };
 
     const generate = async () => {
         if (isGenerating) return;
@@ -1007,6 +1085,7 @@ async function openRewritePreviewDialog(mesId, swipeId, option, customInstructio
         try {
             const candidate = await generateRewriteCandidate(mesId, swipeId, option, customInstructions, selectionInfo, (partialText) => {
                 content.textContent = partialText || 'Generating...';
+                selectNodeContents(content);
             });
             if (typeof candidate === 'string' && candidate.length) {
                 generations.push(candidate);
@@ -1024,29 +1103,37 @@ async function openRewritePreviewDialog(mesId, swipeId, option, customInstructio
         if (!generations.length) return;
         generationIndex = (generationIndex - 1 + generations.length) % generations.length;
         renderGeneration();
+        selectNodeContents(content);
     });
 
     nextButton.addEventListener('click', () => {
         if (!generations.length) return;
         generationIndex = (generationIndex + 1) % generations.length;
         renderGeneration();
+        selectNodeContents(content);
     });
 
     retryButton.addEventListener('click', generate);
 
     applyButton.addEventListener('click', async () => {
-        if (generationIndex < 0 || !generations[generationIndex]) return;
+        if (generationIndex < 0 || generations[generationIndex] === undefined) return;
+
+        if (generationIndex === 0) {
+            activeInlinePreview = null;
+            cleanup();
+            return;
+        }
+
         const { fullMessage, rawStartOffset, rawEndOffset } = selectionInfo;
         await saveRewrittenText(mesId, swipeId, fullMessage, rawStartOffset, rawEndOffset, generations[generationIndex]);
+        activeInlinePreview = null;
         cleanup();
     });
 
-    closeButton.addEventListener('click', cleanup);
     cancelButton.addEventListener('click', cleanup);
-    dialog.addEventListener('click', (event) => {
-        if (event.target === dialog) cleanup();
-    });
     document.addEventListener('keydown', onKeyDown);
+    renderGeneration();
+    selectNodeContents(content);
 
     await generate();
 }
