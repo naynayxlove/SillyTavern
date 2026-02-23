@@ -990,13 +990,8 @@ function renderMessageInPlace(mesId) {
 }
 
 function selectNodeContents(node) {
-    const selection = window.getSelection();
-    if (!selection || !node) return;
-
-    const range = document.createRange();
-    range.selectNodeContents(node);
-    selection.removeAllRanges();
-    selection.addRange(range);
+    // Intentionally no-op: keep preview boundary styling without browser text selection highlight.
+    void node;
 }
 
 async function openRewritePreviewInline(mesId, swipeId, option, customInstructions, selectionInfo) {
