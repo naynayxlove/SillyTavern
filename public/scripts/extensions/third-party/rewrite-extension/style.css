@@ -281,6 +281,7 @@
 
 .rewrite-inline-preview-apply,
 .rewrite-inline-preview-retry {
+    min-width: 52px;
     font-weight: 600;
 }
 
@@ -302,6 +303,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    flex: 1 1 auto;
     min-width: 108px;
     text-align: center;
     font-size: 0.74em;
