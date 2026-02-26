@@ -113,10 +113,10 @@ function refreshInlinePromptDropdowns(): void {
       selectElement.appendChild(option);
     });
 
-    const nextValue = presetNames.includes(selectedPreset)
-      ? selectedPreset
-      : presetNames.includes(currentValue)
-        ? currentValue
+    const nextValue = presetNames.includes(currentValue)
+      ? currentValue
+      : presetNames.includes(selectedPreset)
+        ? selectedPreset
         : presetNames[0] ?? 'default';
     selectElement.value = nextValue;
   });
@@ -367,8 +367,7 @@ async function handleUIChanges(): Promise<void> {
   $(document).on('change', '.roadway_prompt_selector', function () {
     const selectedPreset = ($(this).val() as string) ?? 'default';
     const nextPreset = settings.promptPresets[selectedPreset] ? selectedPreset : 'default';
-    $(this).data('selectedPreset', nextPreset);
-    $(this).val('default');
+    $(this).val(nextPreset);
   });
   const pendingRequests = new Set<number>();
   $(document).on('click', '.mes_magic_roadway_button', async function () {
@@ -378,7 +377,7 @@ async function handleUIChanges(): Promise<void> {
       return;
     }
     const messageBlock = $(this).closest('.mes');
-    const inlinePreset = messageBlock.find('.roadway_prompt_selector').data('selectedPreset') as string | undefined;
+    const inlinePreset = messageBlock.find('.roadway_prompt_selector').val() as string | undefined;
     const promptPreset = inlinePreset && settings.promptPresets[inlinePreset] ? inlinePreset : 'default';
     const targetMessageId = Number(messageBlock.attr('mesid'));
     const profile = context.extensionSettings.connectionManager?.profiles?.find(
@@ -485,7 +484,6 @@ async function handleUIChanges(): Promise<void> {
       await st_echo('error', `Error: ${error}`);
     } finally {
       pendingRequests.delete(targetMessageId);
-      messageBlock.find('.roadway_prompt_selector').removeData('selectedPreset').val('default');
       $('.mes_magic_roadway_button').removeClass('spinning');
     }
   });
