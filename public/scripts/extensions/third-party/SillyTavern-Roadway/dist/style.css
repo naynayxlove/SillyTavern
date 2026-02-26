@@ -57,3 +57,6 @@
 .custom-roadway_option .custom-action_button:hover {
   background-color: var(--SmartThemeBorderColor);
 }
+.roadway_prompt_group{display:inline-flex;align-items:center;gap:calc(var(--mainFontSize)*.25)}
+.roadway_prompt_selector{width:8.5em;height:auto;min-height:0;font-size:calc(var(--mainFontSize)*.9);padding:0 calc(var(--mainFontSize)*.25);margin:0}
+.roadway_prompt_group .mes_magic_roadway_button{display:inline-flex;align-items:center;justify-content:center}

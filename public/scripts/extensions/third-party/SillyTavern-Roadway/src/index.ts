@@ -95,6 +95,32 @@ const DEFAULT_SETTINGS: ExtensionSettings = {
 
 const settingsManager = new ExtensionSettingsManager<ExtensionSettings>(KEYS.EXTENSION, DEFAULT_SETTINGS);
 
+function refreshInlinePromptDropdowns(): void {
+  const settings = settingsManager.getSettings();
+  const presetNames = Object.keys(settings.promptPresets);
+  const selectedPreset = settings.promptPreset;
+
+  $('.roadway_prompt_selector').each(function () {
+    const selectElement = this as HTMLSelectElement;
+    const currentValue = selectElement.value;
+    selectElement.innerHTML = '';
+
+    presetNames.forEach((presetName) => {
+      const option = document.createElement('option');
+      option.value = presetName;
+      option.textContent = presetName;
+      selectElement.appendChild(option);
+    });
+
+    const nextValue = presetNames.includes(selectedPreset)
+      ? selectedPreset
+      : presetNames.includes(currentValue)
+        ? currentValue
+        : presetNames[0] ?? 'default';
+    selectElement.value = nextValue;
+  });
+}
+
 async function handleUIChanges(): Promise<void> {
   const settingsHtml: string = await globalContext.renderExtensionTemplateAsync(
     `third-party/${extensionName}`,
@@ -119,14 +145,28 @@ async function handleUIChanges(): Promise<void> {
   const impersonateSection = settingsContainer.find('.impersonate_section');
   const impersonateElement = settingsContainer.find('textarea.impersonate');
 
+  function persistPresetEditorValues(presetName?: string): void {
+    if (!presetName || !settings.promptPresets[presetName]) {
+      return;
+    }
+
+    settings.promptPresets[presetName].content = (promptElement.val() as string) ?? '';
+    settings.promptPresets[presetName].extractionStrategy =
+      ((extractionStrategyElement.val() as 'bullet' | 'none') ?? 'bullet');
+    settings.promptPresets[presetName].impersonate = (impersonateElement.val() as string) ?? '';
+  }
+
   const { select } = buildPresetSelect('.roadway_settings select.prompt', {
     initialValue: settings.promptPreset,
     initialList: Object.keys(settings.promptPresets),
     readOnlyValues: ['default'],
-    onSelectChange: async (_previousValue, newValue) => {
+    onSelectChange: async (previousValue, newValue) => {
+      persistPresetEditorValues(previousValue ?? settings.promptPreset);
+
       const newPresetValue = newValue ?? 'default';
       settings.promptPreset = newPresetValue;
       settingsManager.saveSettings();
+      refreshInlinePromptDropdowns();
       promptElement.val(settings.promptPresets[newPresetValue]?.content ?? '');
       extractionStrategyElement.val(settings.promptPresets[newPresetValue]?.extractionStrategy);
       impersonateElement.val(settings.promptPresets[newPresetValue]?.impersonate ?? '');
@@ -143,17 +183,20 @@ async function handleUIChanges(): Promise<void> {
           extractionStrategy: currentPreset?.extractionStrategy ?? 'bullet',
           impersonate: currentPreset?.impersonate ?? DEFAULT_IMPERSONATE,
         };
+        refreshInlinePromptDropdowns();
       },
     },
     rename: {
       onAfterRename: (previousValue, newValue) => {
         settings.promptPresets[newValue] = settings.promptPresets[previousValue];
         delete settings.promptPresets[previousValue];
+        refreshInlinePromptDropdowns();
       },
     },
     delete: {
       onAfterDelete: (value) => {
         delete settings.promptPresets[value];
+        refreshInlinePromptDropdowns();
       },
     },
   });
@@ -211,6 +254,7 @@ async function handleUIChanges(): Promise<void> {
       select.value = 'default';
       select.dispatchEvent(new Event('change'));
     } else {
+      refreshInlinePromptDropdowns();
       settingsManager.saveSettings();
     }
   });
@@ -305,10 +349,29 @@ async function handleUIChanges(): Promise<void> {
     },
   );
 
-  const roadwayButton = $(
-    `<div title="Generate Roadway" class="mes_button mes_magic_roadway_button fa-solid fa-road interactable" tabindex="0"></div>`,
+  const roadwayButtonGroup = $(
+    `<span class="roadway_prompt_group">
+      <select class="roadway_prompt_selector text_pole interactable" title="Roadway prompt preset"></select>
+      <div title="Generate Roadway" class="mes_button mes_magic_roadway_button fa-solid fa-road interactable" tabindex="0"></div>
+    </span>`,
   );
-  $('#message_template .mes_buttons .extraMesButtons').prepend(roadwayButton);
+  $('#message_template .mes_buttons .extraMesButtons').prepend(roadwayButtonGroup);
+  refreshInlinePromptDropdowns();
+
+  $(document).on('click mousedown', '.roadway_prompt_selector', function (event) {
+    event.stopPropagation();
+  });
+
+  $(document).on('change', '.roadway_prompt_selector', function () {
+    const selectedPreset = ($(this).val() as string) ?? 'default';
+    settings.promptPreset = selectedPreset;
+    settingsManager.saveSettings();
+
+    if (select.value !== selectedPreset) {
+      select.value = selectedPreset;
+      select.dispatchEvent(new Event('change'));
+    }
+  });
   const pendingRequests = new Set<number>();
   $(document).on('click', '.mes_magic_roadway_button', async function () {
     const context = SillyTavern.getContext();
