@@ -20,10 +20,72 @@ const KEYS = {
   EXTENSION: 'roadway',
   EXTRA: {
     TARGET: 'roadway_target_chat',
+    MESSAGE_ID: 'roadway_message_id',
     RAW_CONTENT: 'roadway_raw_content',
     OPTIONS: 'roadway_options',
   },
 } as const;
+
+function getMessageStableId(message: ChatMessage | undefined): string | undefined {
+  if (!message) {
+    return undefined;
+  }
+
+  const extra = message.extra as Record<string, unknown> | undefined;
+  const stableId =
+    (message as Record<string, unknown>)['id'] ??
+    (message as Record<string, unknown>)['message_id'] ??
+    (message as Record<string, unknown>)['send_date'] ??
+    extra?.['gen_id'] ??
+    (message as Record<string, unknown>)['gen_id'];
+
+  if (stableId === undefined || stableId === null || stableId === '') {
+    return undefined;
+  }
+
+  return String(stableId);
+}
+
+function makeRoadwayMessageMarker(): string {
+  return `roadway-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function findRoadwayMessageByMarker(context: any, roadwayMessageMarker: string): { message: ChatMessage; index: number } | null {
+  const index = context.chat.findIndex(
+    (mes: ChatMessage) => String(mes.extra?.[KEYS.EXTRA.MESSAGE_ID] ?? '') === roadwayMessageMarker,
+  );
+  if (index < 0) {
+    return null;
+  }
+
+  return {
+    message: context.chat[index],
+    index,
+  };
+}
+
+function isRoadwayMessage(message: ChatMessage | undefined): boolean {
+  return message?.extra?.[KEYS.EXTRA.TARGET] !== undefined;
+}
+
+function ensureRoadwayMessageMarker(message: ChatMessage | undefined): string {
+  if (!message) {
+    return '';
+  }
+
+  const existingMarker = String(message.extra?.[KEYS.EXTRA.MESSAGE_ID] ?? '');
+  if (existingMarker) {
+    return existingMarker;
+  }
+
+  const newMarker = makeRoadwayMessageMarker();
+  message.extra = {
+    ...(message.extra ?? {}),
+    [KEYS.EXTRA.MESSAGE_ID]: newMarker,
+  };
+  return newMarker;
+}
+
 
 interface PromptPreset {
   content: string;
@@ -359,7 +421,7 @@ async function handleUIChanges(): Promise<void> {
       select.dispatchEvent(new Event('change'));
     }
   });
-  const pendingRequests = new Set<number>();
+  const pendingRequests = new Set<string>();
   $(document).on('click', '.mes_magic_roadway_button', async function () {
     const context = SillyTavern.getContext();
     if (!settings.profileId) {
@@ -372,12 +434,13 @@ async function handleUIChanges(): Promise<void> {
     }
     const messageBlock = $(this).closest('.mes');
     const targetMessageId = Number(messageBlock.attr('mesid'));
+    const targetMessage = context.chat[targetMessageId];
+    const targetStableId = getMessageStableId(targetMessage) ?? `legacy-index:${targetMessageId}`;
     const profile = context.extensionSettings.connectionManager?.profiles?.find(
       (profile) => profile.id === settings.profileId,
     );
 
     const apiMap = profile?.api ? context.CONNECT_API_MAP[profile.api] : null;
-    const targetMessage = context.chat.find((_mes, index) => index === targetMessageId);
     if (!targetMessage) {
       return;
     }
@@ -387,12 +450,12 @@ async function handleUIChanges(): Promise<void> {
     characterId = characterId !== -1 ? characterId : undefined;
 
     try {
-      if (pendingRequests.has(targetMessageId)) {
+      if (pendingRequests.has(targetStableId)) {
         await st_echo('warning', 'A request for this message is already in progress. Please wait.');
         return;
       }
 
-      pendingRequests.add(targetMessageId);
+      pendingRequests.add(targetStableId);
       $(this).addClass('spinning');
 
       const promptResult = await buildPrompt(apiMap?.selected!, {
@@ -436,8 +499,17 @@ async function handleUIChanges(): Promise<void> {
         ? actions.map((action, index) => `${index + 1}. ${action}`).join('\n')
         : rest.content;
 
-      const existMessage = context.chat.find((mes) => mes.extra?.[KEYS.EXTRA.TARGET] === targetMessageId);
-      let newMessage: ChatMessage = existMessage ?? {
+      const existMessageResult = context.chat.find((mes, index) => {
+        const targetRef = mes.extra?.[KEYS.EXTRA.TARGET];
+        if (String(targetRef ?? '') === targetStableId) {
+          return true;
+        }
+
+        return typeof targetRef === 'number' && targetRef === targetMessageId && index > targetMessageId;
+      });
+      const existingRoadwayMarker = String(existMessageResult?.extra?.[KEYS.EXTRA.MESSAGE_ID] ?? '');
+      const roadwayMessageMarker = existingRoadwayMarker || makeRoadwayMessageMarker();
+      let newMessage: ChatMessage = existMessageResult ?? {
         mes: formatResponse(innerText, extractionStrategy === 'bullet' ? actions : undefined),
         name: systemUserName,
         force_avatar: system_avatar,
@@ -445,36 +517,48 @@ async function handleUIChanges(): Promise<void> {
         is_user: false,
         extra: {
           isSmallSys: true,
-          [KEYS.EXTRA.TARGET]: targetMessageId,
-          [KEYS.EXTRA.RAW_CONTENT]: innerText,
+          [KEYS.EXTRA.TARGET]: targetStableId,
+          [KEYS.EXTRA.MESSAGE_ID]: roadwayMessageMarker,
+          [KEYS.EXTRA.RAW_CONTENT]: rest.content,
           [KEYS.EXTRA.OPTIONS]: actions,
         },
       };
 
-      if (existMessage) {
+      if (existMessageResult) {
         newMessage.mes = formatResponse(innerText, extractionStrategy === 'bullet' ? actions : undefined);
-        newMessage.extra![KEYS.EXTRA.RAW_CONTENT] = rest.content;
-        newMessage.extra![KEYS.EXTRA.OPTIONS] = actions;
-        const detailsElement = $(`[mesid="${targetMessageId + 1}"] .mes_text`);
-        detailsElement.html(
-          formatResponse(innerText, extractionStrategy === 'bullet' ? actions : undefined, 'custom-'),
-        );
+        newMessage.extra = {
+          ...(newMessage.extra ?? {}),
+          [KEYS.EXTRA.TARGET]: targetStableId,
+          [KEYS.EXTRA.MESSAGE_ID]: roadwayMessageMarker,
+          [KEYS.EXTRA.RAW_CONTENT]: rest.content,
+          [KEYS.EXTRA.OPTIONS]: actions,
+        };
       } else {
         context.chat.push(newMessage);
         context.addOneMessage(newMessage, { insertAfter: targetMessageId });
       }
-      const detailsElement = $(`[mesid="${targetMessageId + 1}"] .mes_text details`);
-      if (settings.autoOpen && !detailsElement.attr('open')) {
-        detailsElement.attr('open', '');
+
+      const roadwayMessageResult = findRoadwayMessageByMarker(context, roadwayMessageMarker);
+      const roadwayMessageId = roadwayMessageResult?.index;
+      if (roadwayMessageId !== undefined) {
+        const detailsElement = $(`[mesid="${roadwayMessageId}"] .mes_text`);
+        detailsElement.html(
+          formatResponse(innerText, extractionStrategy === 'bullet' ? actions : undefined, 'custom-'),
+        );
+
+        const detailsOpenElement = $(`[mesid="${roadwayMessageId}"] .mes_text details`);
+        if (settings.autoOpen && !detailsOpenElement.attr('open')) {
+          detailsOpenElement.attr('open', '');
+        }
+        attachRoadwayOptionHandlers(roadwayMessageMarker);
       }
-      attachRoadwayOptionHandlers(targetMessageId + 1);
 
       await context.saveChat();
     } catch (error) {
       console.error(error);
       await st_echo('error', `Error: ${error}`);
     } finally {
-      pendingRequests.delete(targetMessageId);
+      pendingRequests.delete(targetStableId);
       $('.mes_magic_roadway_button').removeClass('spinning');
     }
   });
@@ -550,18 +634,24 @@ function extractBulletPoints(text: string): string[] {
 
 const generator = new Generator();
 let lastRequestId: string | undefined;
-function attachRoadwayOptionHandlers(roadwayMessageId: number) {
+function attachRoadwayOptionHandlers(roadwayMessageMarker: string) {
+  const context = SillyTavern.getContext();
+  const roadwayMessageResult = findRoadwayMessageByMarker(context, roadwayMessageMarker);
+  if (!roadwayMessageResult) {
+    return;
+  }
+
+  const roadwayMessageId = roadwayMessageResult.index;
   const optionsContainer = $(`[mesid="${roadwayMessageId}"] .custom-roadway_options`);
   optionsContainer.find('.custom-action_button').off();
 
-  const context = SillyTavern.getContext();
 
   // Handle impersonate action
   optionsContainer.find('.custom-impersonate_action').on('click', async function () {
     const parentOption = $(this).closest('.custom-roadway_option');
     const index = optionsContainer.find('.custom-roadway_option').index(parentOption);
 
-    const message = context.chat.find((mes, index) => roadwayMessageId === index);
+    const message = findRoadwayMessageByMarker(context, roadwayMessageMarker)?.message;
     if (!message) {
       return;
     }
@@ -745,7 +835,7 @@ function attachRoadwayOptionHandlers(roadwayMessageId: number) {
       contentDiv.text(newText);
 
       // Update the stored options
-      const message = context.chat.find((_mes, index) => roadwayMessageId === index);
+      const message = findRoadwayMessageByMarker(context, roadwayMessageMarker)?.message;
       if (message?.extra?.[KEYS.EXTRA.OPTIONS]) {
         const index = optionsContainer.find('.custom-roadway_option').index(parentOption);
         message.extra[KEYS.EXTRA.OPTIONS][index] = newText;
@@ -773,8 +863,13 @@ function initializeEvents() {
 
     $('.custom-roadway_options .custom-use_action').toggle(settingsManager.getSettings().showUseActionIcon);
     const lastMessage = context.chat[context.chat.length - 1];
-    if (typeof lastMessage.extra?.[KEYS.EXTRA.TARGET] === 'number') {
-      attachRoadwayOptionHandlers(context.chat.length - 1);
+    if (!isRoadwayMessage(lastMessage)) {
+      return;
+    }
+
+    const roadwayMessageMarker = ensureRoadwayMessageMarker(lastMessage);
+    if (roadwayMessageMarker) {
+      attachRoadwayOptionHandlers(roadwayMessageMarker);
     }
   });
 
