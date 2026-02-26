@@ -495,7 +495,19 @@ async function handleUIChanges(): Promise<void> {
   function formatResponse(response: string, options?: string[], classPrefix = ''): string {
     const detailsElement = document.createElement('details');
     const summaryElement = document.createElement('summary');
-    summaryElement.textContent = 'Roadway';
+
+    const summaryLabel = document.createElement('span');
+    summaryLabel.textContent = 'Roadway';
+    summaryElement.appendChild(summaryLabel);
+
+    const closeButton = document.createElement('span');
+    closeButton.classList.add(`${classPrefix}roadway_close`);
+    closeButton.textContent = '✕';
+    closeButton.title = 'Delete Roadway details';
+    closeButton.setAttribute('role', 'button');
+    closeButton.setAttribute('tabindex', '0');
+    summaryElement.appendChild(closeButton);
+
     detailsElement.appendChild(summaryElement);
 
     if (options?.length) {
@@ -777,6 +789,26 @@ function attachRoadwayOptionHandlers(roadwayMessageId: number) {
 }
 
 function initializeEvents() {
+  $(document).on('click keydown', '.custom-roadway_close', async function (event) {
+    if (event.type === 'keydown') {
+      const keyEvent = event as JQuery.KeyDownEvent;
+      if (keyEvent.key !== 'Enter' && keyEvent.key !== ' ') {
+        return;
+      }
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const messageBlock = $(this).closest('.mes');
+    const messageId = Number(messageBlock.attr('mesid'));
+    if (Number.isNaN(messageId)) {
+      return;
+    }
+
+    await globalContext.deleteMessage(messageId, undefined, false);
+  });
+
   // If last message is roadway, add event listener
   globalContext.eventSource.on(EventNames.CHAT_CHANGED, () => {
     const context = SillyTavern.getContext();
