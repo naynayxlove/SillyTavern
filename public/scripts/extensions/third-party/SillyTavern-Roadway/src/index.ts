@@ -22,6 +22,7 @@ const KEYS = {
     TARGET: 'roadway_target_chat',
     RAW_CONTENT: 'roadway_raw_content',
     OPTIONS: 'roadway_options',
+    PRESET: 'roadway_prompt_preset',
   },
 } as const;
 
@@ -98,7 +99,7 @@ const settingsManager = new ExtensionSettingsManager<ExtensionSettings>(KEYS.EXT
 function refreshInlinePromptDropdowns(): void {
   const settings = settingsManager.getSettings();
   const presetNames = Object.keys(settings.promptPresets);
-  const selectedPreset = settings.promptPreset;
+  const selectedPreset = settings.promptPresets['default'] ? 'default' : (presetNames[0] ?? 'default');
 
   $('.roadway_prompt_selector').each(function () {
     const selectElement = this as HTMLSelectElement;
@@ -131,6 +132,7 @@ async function handleUIChanges(): Promise<void> {
   const settingsContainer = $('.roadway_settings');
 
   const settings = settingsManager.getSettings();
+  let editingPreset = settings.promptPresets[settings.promptPreset] ? settings.promptPreset : 'default';
   globalContext.ConnectionManagerRequestService.handleDropdown(
     '.roadway_settings .connection_profile',
     settings.profileId,
@@ -161,12 +163,12 @@ async function handleUIChanges(): Promise<void> {
     initialList: Object.keys(settings.promptPresets),
     readOnlyValues: ['default'],
     onSelectChange: async (previousValue, newValue) => {
-      persistPresetEditorValues(previousValue ?? settings.promptPreset);
+      persistPresetEditorValues(previousValue ?? editingPreset);
 
       const newPresetValue = newValue ?? 'default';
-      settings.promptPreset = newPresetValue;
+      editingPreset = newPresetValue;
+      settings.promptPreset = editingPreset;
       settingsManager.saveSettings();
-      refreshInlinePromptDropdowns();
       promptElement.val(settings.promptPresets[newPresetValue]?.content ?? '');
       extractionStrategyElement.val(settings.promptPresets[newPresetValue]?.extractionStrategy);
       impersonateElement.val(settings.promptPresets[newPresetValue]?.impersonate ?? '');
@@ -177,7 +179,7 @@ async function handleUIChanges(): Promise<void> {
     },
     create: {
       onAfterCreate: (value) => {
-        const currentPreset = settings.promptPresets[settings.promptPreset];
+        const currentPreset = settings.promptPresets[editingPreset];
         settings.promptPresets[value] = {
           content: currentPreset?.content ?? DEFAULT_PROMPT,
           extractionStrategy: currentPreset?.extractionStrategy ?? 'bullet',
@@ -201,15 +203,15 @@ async function handleUIChanges(): Promise<void> {
     },
   });
 
-  promptElement.val(settings.promptPresets[settings.promptPreset]?.content ?? '');
+  promptElement.val(settings.promptPresets[editingPreset]?.content ?? '');
   promptElement.on('change', function () {
     const template = promptElement.val() as string;
-    settings.promptPresets[settings.promptPreset].content = template;
+    settings.promptPresets[editingPreset].content = template;
     settingsManager.saveSettings();
   });
 
   function updateExtractionStrategy() {
-    const preset = settings.promptPresets[settings.promptPreset];
+    const preset = settings.promptPresets[editingPreset];
     extractionStrategyElement.val(preset?.extractionStrategy);
     const isNone = preset?.extractionStrategy === 'none';
     impersonateSection.toggle(!isNone);
@@ -219,14 +221,14 @@ async function handleUIChanges(): Promise<void> {
 
   extractionStrategyElement.on('change', function () {
     const value = $(this).val() as 'bullet' | 'none';
-    settings.promptPresets[settings.promptPreset].extractionStrategy = value;
+    settings.promptPresets[editingPreset].extractionStrategy = value;
     settingsManager.saveSettings();
     const isNone = value === 'none';
     impersonateSection.toggle(!isNone);
   });
 
   impersonateElement.on('change', function () {
-    settings.promptPresets[settings.promptPreset].impersonate = $(this).val() as string;
+    settings.promptPresets[editingPreset].impersonate = $(this).val() as string;
     settingsManager.saveSettings();
   });
 
@@ -254,6 +256,8 @@ async function handleUIChanges(): Promise<void> {
       select.value = 'default';
       select.dispatchEvent(new Event('change'));
     } else {
+      editingPreset = 'default';
+      settings.promptPreset = 'default';
       refreshInlinePromptDropdowns();
       settingsManager.saveSettings();
     }
@@ -364,13 +368,9 @@ async function handleUIChanges(): Promise<void> {
 
   $(document).on('change', '.roadway_prompt_selector', function () {
     const selectedPreset = ($(this).val() as string) ?? 'default';
-    settings.promptPreset = selectedPreset;
-    settingsManager.saveSettings();
-
-    if (select.value !== selectedPreset) {
-      select.value = selectedPreset;
-      select.dispatchEvent(new Event('change'));
-    }
+    const nextPreset = settings.promptPresets[selectedPreset] ? selectedPreset : 'default';
+    $(this).data('selectedPreset', nextPreset);
+    $(this).val('default');
   });
   const pendingRequests = new Set<number>();
   $(document).on('click', '.mes_magic_roadway_button', async function () {
@@ -379,11 +379,9 @@ async function handleUIChanges(): Promise<void> {
       await st_echo('error', 'Please select a connection profile first in the settings.');
       return;
     }
-    if (!settings.promptPreset) {
-      await st_echo('error', 'Please enter a prompt first in the settings.');
-      return;
-    }
     const messageBlock = $(this).closest('.mes');
+    const inlinePreset = messageBlock.find('.roadway_prompt_selector').data('selectedPreset') as string | undefined;
+    const promptPreset = inlinePreset && settings.promptPresets[inlinePreset] ? inlinePreset : 'default';
     const targetMessageId = Number(messageBlock.attr('mesid'));
     const profile = context.extensionSettings.connectionManager?.profiles?.find(
       (profile) => profile.id === settings.profileId,
@@ -427,7 +425,7 @@ async function handleUIChanges(): Promise<void> {
       });
       const messages = promptResult.result;
       messages.push({
-        content: context.substituteParams(settings.promptPresets[settings.promptPreset].content),
+        content: context.substituteParams(settings.promptPresets[promptPreset]?.content ?? DEFAULT_PROMPT),
         role: settings.messageRole,
       });
       const rest = (await context.ConnectionManagerRequestService.sendRequest(
@@ -437,7 +435,7 @@ async function handleUIChanges(): Promise<void> {
       )) as ExtractedData;
 
       let actions: string[] = [];
-      const extractionStrategy = settings.promptPresets[settings.promptPreset]?.extractionStrategy;
+      const extractionStrategy = settings.promptPresets[promptPreset]?.extractionStrategy;
       if (extractionStrategy === 'bullet') {
         actions = extractBulletPoints(rest.content);
         if (actions.length === 0) {
@@ -461,6 +459,7 @@ async function handleUIChanges(): Promise<void> {
           [KEYS.EXTRA.TARGET]: targetMessageId,
           [KEYS.EXTRA.RAW_CONTENT]: innerText,
           [KEYS.EXTRA.OPTIONS]: actions,
+          [KEYS.EXTRA.PRESET]: promptPreset,
         },
       };
 
@@ -488,6 +487,7 @@ async function handleUIChanges(): Promise<void> {
       await st_echo('error', `Error: ${error}`);
     } finally {
       pendingRequests.delete(targetMessageId);
+      messageBlock.find('.roadway_prompt_selector').removeData('selectedPreset').val('default');
       $('.mes_magic_roadway_button').removeClass('spinning');
     }
   });
@@ -593,7 +593,8 @@ function attachRoadwayOptionHandlers(roadwayMessageId: number) {
     }
 
     const settings = settingsManager.getSettings();
-    const preset = settings.promptPresets[context.extensionSettings[KEYS.EXTENSION].promptPreset];
+    const presetName = (message.extra?.[KEYS.EXTRA.PRESET] as string | undefined) ?? 'default';
+    const preset = settings.promptPresets[presetName] ?? settings.promptPresets['default'];
     if (!preset || !preset.impersonate) {
       await st_echo('error', 'Preset not found. Please check the extension settings.');
       return;
