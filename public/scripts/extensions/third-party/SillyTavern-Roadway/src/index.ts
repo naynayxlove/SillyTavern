@@ -167,7 +167,6 @@ async function handleUIChanges(): Promise<void> {
 
       const newPresetValue = newValue ?? 'default';
       editingPreset = newPresetValue;
-      settings.promptPreset = editingPreset;
       settingsManager.saveSettings();
       promptElement.val(settings.promptPresets[newPresetValue]?.content ?? '');
       extractionStrategyElement.val(settings.promptPresets[newPresetValue]?.extractionStrategy);
@@ -257,7 +256,6 @@ async function handleUIChanges(): Promise<void> {
       select.dispatchEvent(new Event('change'));
     } else {
       editingPreset = 'default';
-      settings.promptPreset = 'default';
       refreshInlinePromptDropdowns();
       settingsManager.saveSettings();
     }
