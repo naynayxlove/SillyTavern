@@ -90,13 +90,18 @@
     display: none;
 }
 
+.custom-roadway_summary_label {
+    margin-right: calc(var(--mainFontSize) * 0.35);
+}
+
 .custom-roadway_close {
-    float: right;
-    margin-left: calc(var(--mainFontSize) * 0.6);
     cursor: pointer;
-    opacity: 0.75;
+    color: #ff4d4f;
+    font-weight: 700;
+    opacity: 0.95;
 }
 
 .custom-roadway_close:hover {
     opacity: 1;
+    color: #ff1f1f;
 }

@@ -497,6 +497,7 @@ async function handleUIChanges(): Promise<void> {
     const summaryElement = document.createElement('summary');
 
     const summaryLabel = document.createElement('span');
+    summaryLabel.classList.add(`${classPrefix}roadway_summary_label`);
     summaryLabel.textContent = 'Roadway';
     summaryElement.appendChild(summaryLabel);
 
